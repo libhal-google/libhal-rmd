@@ -15,6 +15,7 @@ struct gear_ratio_t
 
 class rmd_x : public driver<>
 {
+public:
   /// Operating baudrate of all RMD-X smart servos
   static constexpr uint32_t baudrate_hz = 1'000'000;
 
@@ -73,9 +74,9 @@ class rmd_x : public driver<>
   };
 
   rmd_x(can_network& p_network,
-       uint32_t p_max_rpm,
-       gear_ratio_t p_gear_ratio,
-       can::id_t p_device_id = 0x140)
+        uint32_t p_max_rpm,
+        gear_ratio_t p_gear_ratio,
+        can::id_t p_device_id = 0x140)
     : m_feedback{}
     , m_node{}
     , m_network(p_network)
@@ -85,8 +86,8 @@ class rmd_x : public driver<>
   {}
 
   bool driver_initialize() override;
-  void speed(full_scale<int32_t> speed);
-  void angle(int32_t angle, full_scale<int32_t> speed);
+  void speed(int32_t speed);
+  void angle(int32_t angle /*, full_scale<int32_t> speed */);
   void RequestFeedbackFromMotor();
   feedback_t feedback() const noexcept { return m_feedback; }
 
@@ -130,12 +131,22 @@ inline bool rmd_x::driver_initialize()
                                         0x00,
                                         0x00,
                                         0x00 }));
+
+  m_network.bus().send(to_rmd_message({ value(Commands::motor_running_command),
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00 }));
+
   return true;
 }
 
-inline void rmd_x::speed(full_scale<int32_t> rpm)
+inline void rmd_x::speed(int32_t rpm)
 {
-  int32_t command_speed = 0; // = ConvertRPMToCommandSpeed(rpm);
+  int32_t command_speed = rpm * m_gear_ratio.input;
   m_network.bus().send(to_rmd_message({
     value(Commands::speed_closed_loop_command),
     0x00,
@@ -148,20 +159,20 @@ inline void rmd_x::speed(full_scale<int32_t> rpm)
   }));
 }
 
-inline void rmd_x::angle(int32_t angle, full_scale<int32_t> speed)
+inline void rmd_x::angle(int32_t angle /* , full_scale<int32_t> speed */)
 {
-  int32_t command_speed = 0; // ConvertRPMToCommandSpeed(rpm, 1.0f);
-  int32_t command_angle = 0; // ConvertAngleToCommandAngle(angle);
+  int32_t command_speed = 100;
+  angle *= m_gear_ratio.input;
 
   m_network.bus().send(to_rmd_message({
     value(Commands::position_closed_loop_command_2),
     0x00,
     static_cast<uint8_t>((command_speed >> 0) & 0xFF),
     static_cast<uint8_t>((command_speed >> 8) & 0xFF),
-    static_cast<uint8_t>((command_angle >> 0) & 0xFF),
-    static_cast<uint8_t>((command_angle >> 8) & 0xFF),
-    static_cast<uint8_t>((command_angle >> 16) & 0xFF),
-    static_cast<uint8_t>((command_angle >> 24) & 0xFF),
+    static_cast<uint8_t>((angle >> 0) & 0xFF),
+    static_cast<uint8_t>((angle >> 8) & 0xFF),
+    static_cast<uint8_t>((angle >> 16) & 0xFF),
+    static_cast<uint8_t>((angle >> 24) & 0xFF),
   }));
 }
 } // namespace embed
