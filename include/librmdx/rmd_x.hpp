@@ -1,10 +1,10 @@
 #pragma once
 
-#include <libembeddedhal/can.hpp>
+#include <libembeddedhal/can/can.hpp>
+#include <libembeddedhal/can/can_network.hpp>
 #include <libembeddedhal/driver.hpp>
-#include <libembeddedhal/utility/can_network.hpp>
-#include <libembeddedhal/utility/enum.hpp>
-#include <libembeddedhal/utility/full_scale.hpp>
+#include <libembeddedhal/enum.hpp>
+#include <libembeddedhal/full_scale.hpp>
 
 namespace embed {
 struct gear_ratio_t
