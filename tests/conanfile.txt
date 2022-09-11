@@ -1,5 +1,8 @@
 [requires]
-libesp8266/[>=0.0.1]
+boost-ext-ut/1.1.8
+libhal/[x]
 
 [generators]
-cmake_find_package_multi
+CMakeToolchain
+CMakeDeps
+VirtualRunEnv

@@ -1,26 +1,27 @@
 #pragma once
 
-#include <libembeddedhal/can/can.hpp>
-#include <libembeddedhal/can/can_network.hpp>
-#include <libembeddedhal/driver.hpp>
-#include <libembeddedhal/enum.hpp>
-#include <libembeddedhal/full_scale.hpp>
+#include <cstdint>
 
-namespace embed {
+#include <libhal/can/interface.hpp>
+#include <libhal/can/network.hpp>
+#include <libhal/enum.hpp>
+#include <libhal/units.hpp>
+
+namespace hal::rmd {
 struct gear_ratio_t
 {
-  uint32_t input;
-  uint32_t output;
+  std::uint32_t input;
+  std::uint32_t output;
 };
 
-class rmd_x : public driver<>
+class x_series
 {
 public:
   /// Operating baudrate of all RMD-X smart servos
-  static constexpr uint32_t baudrate_hz = 1'000'000;
+  static constexpr std::uint32_t baudrate_hz = 1'000'000;
 
   /// Commands that can be issued to a RMD-X motor
-  enum class Commands : uint8_t
+  enum class Commands : hal::byte
   {
     read_pid_data = 0x30,
     write_pid_to_ram_command = 0x31,
@@ -73,76 +74,84 @@ public:
     bool missed_feedback = true;
   };
 
-  rmd_x(can_network& p_network,
-        uint32_t p_max_rpm,
+  result<rmd_x> create(can_network& p_network,
+                       std::uint32_t p_max_rpm,
+                       gear_ratio_t p_gear_ratio,
+                       can::id_t p_device_id = 0x140)
+  {
+    HAL_CHECK(
+      p_network.bus().configure(can::settings{ .clock_rate = baudrate_hz }));
+
+    m_node = HAL_CHECK(p_network.register_message_id(m_device_id));
+
+    HAL_CHECK(
+      p_network.bus().send(to_rmd_message(p_device_id,
+                                          { value(Commands::motor_off_command),
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00 })));
+
+    HAL_CHECK(p_network.bus().send(
+      to_rmd_message(p_device_id,
+                     { value(Commands::motor_running_command),
+                       0x00,
+                       0x00,
+                       0x00,
+                       0x00,
+                       0x00,
+                       0x00,
+                       0x00 })));
+
+    return rmd_x(m_node, p_max_rpm, p_gear_ratio, p_device_id);
+  }
+
+  rmd_x(can_network::node_t* p_node,
+        std::uint32_t p_max_rpm,
         gear_ratio_t p_gear_ratio,
         can::id_t p_device_id = 0x140)
     : m_feedback{}
-    , m_node{}
-    , m_network(p_network)
+    , m_node(p_node)
     , m_max_rpm(p_max_rpm)
     , m_gear_ratio(p_gear_ratio)
     , m_device_id(p_device_id)
-  {}
+  {
+  }
 
-  bool driver_initialize() override;
   void speed(int32_t speed);
   void angle(int32_t angle /*, full_scale<int32_t> speed */);
   void RequestFeedbackFromMotor();
-  feedback_t feedback() const noexcept { return m_feedback; }
+  feedback_t feedback() const noexcept
+  {
+    return m_feedback;
+  }
 
 private:
-  can::message_t to_rmd_message(std::array<uint8_t, 8> p_payload) const noexcept
+  static can::message_t to_rmd_message(
+    can::id_t p_id,
+    std::array<hal::byte, 8> p_payload) noexcept
   {
-    can::message_t message{ .id = m_device_id,
-                            .length = 8,
-                            .payload = p_payload };
+    can::message_t message{ .id = p_id, .length = 8 };
+    message.payload = p_payload;
+    return message;
+  }
+  can::message_t to_rmd_message(
+    std::array<hal::byte, 8> p_payload) const noexcept
+  {
+    can::message_t message{ .id = m_device_id, .length = 8 };
+    message.payload = p_payload;
     return message;
   }
 
   feedback_t m_feedback;
   can_network::node_t* m_node;
-  can_network& m_network;
   gear_ratio_t m_gear_ratio;
-  uint32_t m_max_rpm;
+  std::uint32_t m_max_rpm;
   can::id_t m_device_id;
 };
-
-inline bool rmd_x::driver_initialize()
-{
-  m_network.bus().settings().clock_rate_hz = baudrate_hz;
-  bool success = m_network.initialize();
-
-  if (!success) {
-    return false;
-  }
-
-  m_node = m_network.register_message_id(m_device_id);
-
-  if (!m_node) {
-    return false;
-  }
-
-  m_network.bus().send(to_rmd_message({ value(Commands::motor_off_command),
-                                        0x00,
-                                        0x00,
-                                        0x00,
-                                        0x00,
-                                        0x00,
-                                        0x00,
-                                        0x00 }));
-
-  m_network.bus().send(to_rmd_message({ value(Commands::motor_running_command),
-                                        0x00,
-                                        0x00,
-                                        0x00,
-                                        0x00,
-                                        0x00,
-                                        0x00,
-                                        0x00 }));
-
-  return true;
-}
 
 inline void rmd_x::speed(int32_t rpm)
 {
@@ -152,10 +161,10 @@ inline void rmd_x::speed(int32_t rpm)
     0x00,
     0x00,
     0x00,
-    static_cast<uint8_t>((command_speed >> 0) & 0xFF),
-    static_cast<uint8_t>((command_speed >> 8) & 0xFF),
-    static_cast<uint8_t>((command_speed >> 16) & 0xFF),
-    static_cast<uint8_t>((command_speed >> 24) & 0xFF),
+    static_cast<hal::byte>((command_speed >> 0) & 0xFF),
+    static_cast<hal::byte>((command_speed >> 8) & 0xFF),
+    static_cast<hal::byte>((command_speed >> 16) & 0xFF),
+    static_cast<hal::byte>((command_speed >> 24) & 0xFF),
   }));
 }
 
@@ -167,12 +176,12 @@ inline void rmd_x::angle(int32_t angle /* , full_scale<int32_t> speed */)
   m_network.bus().send(to_rmd_message({
     value(Commands::position_closed_loop_command_2),
     0x00,
-    static_cast<uint8_t>((command_speed >> 0) & 0xFF),
-    static_cast<uint8_t>((command_speed >> 8) & 0xFF),
-    static_cast<uint8_t>((angle >> 0) & 0xFF),
-    static_cast<uint8_t>((angle >> 8) & 0xFF),
-    static_cast<uint8_t>((angle >> 16) & 0xFF),
-    static_cast<uint8_t>((angle >> 24) & 0xFF),
+    static_cast<hal::byte>((command_speed >> 0) & 0xFF),
+    static_cast<hal::byte>((command_speed >> 8) & 0xFF),
+    static_cast<hal::byte>((angle >> 0) & 0xFF),
+    static_cast<hal::byte>((angle >> 8) & 0xFF),
+    static_cast<hal::byte>((angle >> 16) & 0xFF),
+    static_cast<hal::byte>((angle >> 24) & 0xFF),
   }));
 }
-} // namespace embed
+}  // namespace hal::rmd

@@ -1,17 +1,31 @@
-cmake_minimum_required(VERSION 3.1...3.21)
+cmake_minimum_required(VERSION 3.15)
 
-project(test VERSION 0.0.1 LANGUAGES CXX)
+set(CMAKE_C_COMPILER "gcc-11")
+set(CMAKE_CXX_COMPILER "g++-11")
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+project(libhal_tests VERSION 0.0.1 LANGUAGES CXX)
+
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
+set(CMAKE_BUILD_TYPE "Debug")
 
-find_package(libesp8266 CONFIG REQUIRED)
+find_package(ut REQUIRED CONFIG)
+find_package(libarmcortex REQUIRED CONFIG)
+find_package(ring-span-lite REQUIRED CONFIG)
 
-add_executable (${PROJECT_NAME} esp8266.test.cpp)
+set(TEST_NAME unit_test)
+set(CMAKE_BUILD_TYPE Debug)
 
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
-target_compile_definitions(${PROJECT_NAME} PRIVATE -DPLATFORM=test)
-target_link_libraries(${PROJECT_NAME} PRIVATE
-libesp8266::libesp8266
-libembeddedhal::libembeddedhal)
+add_executable(${TEST_NAME}
+  x_series.test.cpp
+)
+
+target_include_directories(${TEST_NAME} PUBLIC . ../include)
+target_compile_options(${TEST_NAME} PRIVATE -Werror -Wall -Wextra
+  -Wno-unused-function -Wconversion -Wno-psabi)
+target_compile_features(${TEST_NAME} PRIVATE cxx_std_20)
+set_target_properties(${TEST_NAME} PROPERTIES CXX_EXTENSIONS OFF)
+target_link_libraries(${TEST_NAME} PRIVATE
+  boost::ut
+  libarmcortex::libarmcortex
+  nonstd::ring-span-lite
+)
