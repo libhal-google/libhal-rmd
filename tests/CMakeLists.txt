@@ -13,7 +13,9 @@ find_package(libarmcortex REQUIRED CONFIG)
 find_package(ring-span-lite REQUIRED CONFIG)
 
 add_executable(${PROJECT_NAME}
-  x_series.test.cpp
+  drc.test.cpp
+  mc_x.test.cpp
+  main.test.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC . ../include)
