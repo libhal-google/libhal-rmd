@@ -3,7 +3,7 @@
 #include <libhal/static_memory_resource.hpp>
 #include <librmd/drc.hpp>
 
-class do_nothing_can : hal::can
+class do_nothing_can : public hal::can
 {
 public:
   hal::status driver_configure(
@@ -26,10 +26,8 @@ public:
 int main()
 {
   do_nothing_can can;
-  hal::static_memory_resource<1024> memory_resource;
-
-  hal::can_router router(can, memory_resource);
-  auto& servo = hal::rmd::drc::create<0x140, 0>(router, 6.0f).value();
+  auto router = hal::can_router::create(can);
+  auto& servo = hal::rmd::drc::create(router, 6.0f, 0x140).value();
 
   return 0;
 }

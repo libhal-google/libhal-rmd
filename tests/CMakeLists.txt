@@ -20,7 +20,7 @@ add_executable(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} PUBLIC . ../include)
 target_compile_options(${PROJECT_NAME} PRIVATE -Werror -Wall -Wextra
-  -Wno-unused-function -Wconversion -Wno-psabi)
+  -Wno-unused-function -Wconversion -Wno-psabi -g)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(${PROJECT_NAME} PRIVATE
