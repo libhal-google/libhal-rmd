@@ -11,7 +11,7 @@ required_conan_version = ">=1.50.0"
 
 class LibrmdConan(ConanFile):
     name = "librmd"
-    version = "0.0.0"
+    version = "0.0.1"
     license = "Apache-2.0"
     url = "https://github.com/conan-io/conan-center-index"
     homepage = "https://libhal.github.io/librmd"
@@ -40,8 +40,7 @@ class LibrmdConan(ConanFile):
         }
 
     def requirements(self):
-        self.requires("libarmcortex/[x]@")
-        self.requires("ring-span-lite/0.6.0")
+        self.requires("libhal/[x]@")
 
     def validate(self):
         if self.settings.get_safe("compiler.cppstd"):
