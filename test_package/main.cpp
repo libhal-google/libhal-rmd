@@ -1,6 +1,5 @@
 #include <libhal/can/interface.hpp>
 #include <libhal/can/router.hpp>
-#include <libhal/static_memory_resource.hpp>
 #include <librmd/drc.hpp>
 
 class do_nothing_can : public hal::can
@@ -26,8 +25,8 @@ public:
 int main()
 {
   do_nothing_can can;
-  auto router = hal::can_router::create(can);
-  auto& servo = hal::rmd::drc::create(router, 6.0f, 0x140).value();
+  auto router = hal::can_router::create(can).value();
+  auto servo = hal::rmd::drc::create(router, 6.0f, 0x140).value();
 
   return 0;
 }
