@@ -11,7 +11,7 @@ required_conan_version = ">=1.50.0"
 
 class LibrmdConan(ConanFile):
     name = "librmd"
-    version = "0.0.1"
+    version = "0.2.0"
     license = "Apache-2.0"
     url = "https://github.com/conan-io/conan-center-index"
     homepage = "https://libhal.github.io/librmd"
@@ -34,7 +34,7 @@ class LibrmdConan(ConanFile):
         return {
             "gcc": "11",
             "clang": "14",
-            "apple-clang": "14.0.0"
+            "apple-clang": "13.1.6"
         }
 
     def requirements(self):
