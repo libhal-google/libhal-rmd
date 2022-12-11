@@ -34,7 +34,7 @@ class LibrmdConan(ConanFile):
         return {
             "gcc": "11",
             "clang": "14",
-            "apple-clang": "13.1.6"
+            "apple-clang": "14.0.0"
         }
 
     def requirements(self):
