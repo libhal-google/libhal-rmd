@@ -1,8 +1,8 @@
 #include <librmd/drc.hpp>
 
+#include <libhal-mock/can.hpp>
+
 #include <boost/ut.hpp>
-#include <iostream>
-#include <libhal/can/mock.hpp>
 
 namespace hal::rmd {
 namespace {

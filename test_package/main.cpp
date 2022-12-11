@@ -1,5 +1,5 @@
-#include <libhal/can/interface.hpp>
-#include <libhal/can/router.hpp>
+#include <libhal-util/can.hpp>
+#include <libhal/can.hpp>
 #include <librmd/drc.hpp>
 
 class do_nothing_can : public hal::can

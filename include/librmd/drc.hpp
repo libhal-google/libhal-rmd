@@ -3,11 +3,11 @@
 #include <atomic>
 #include <cstdint>
 
-#include <libhal/can/interface.hpp>
-#include <libhal/can/router.hpp>
-#include <libhal/enum.hpp>
-#include <libhal/map.hpp>
-#include <libhal/move_interceptor.hpp>
+#include <libhal-util/can.hpp>
+#include <libhal-util/enum.hpp>
+#include <libhal-util/map.hpp>
+#include <libhal-util/move_interceptor.hpp>
+#include <libhal/can.hpp>
 #include <libhal/units.hpp>
 
 namespace hal::rmd {
@@ -286,7 +286,7 @@ inline void drc::operator()(const can::message_t& p_message) noexcept
     case value(actuate::position_3):
     case value(actuate::position_4): {
       auto& data = p_message.payload;
-      m_feedback.raw_motor_temperature = data[1];
+      m_feedback.raw_motor_temperature = static_cast<int8_t>(data[1]);
       m_feedback.raw_current = static_cast<int16_t>((data[3] << 8) | data[2]);
       m_feedback.raw_speed = static_cast<int16_t>((data[5] << 8) | data[4]);
       m_feedback.encoder = static_cast<int16_t>((data[7] << 8) | data[6]);
@@ -295,7 +295,7 @@ inline void drc::operator()(const can::message_t& p_message) noexcept
     case value(read::status_1_and_error_flags): {
       auto& data = p_message.payload;
       m_feedback.raw_motor_temperature = static_cast<int8_t>(data[1]);
-      m_feedback.raw_volts = static_cast<uint16_t>((data[4] << 8) | data[3]);
+      m_feedback.raw_volts = static_cast<int16_t>((data[4] << 8) | data[3]);
       m_feedback.over_voltage_protection_tripped = data[7] & 0b1;
       m_feedback.over_temperature_protection_tripped = data[7] & 0b100;
       break;
