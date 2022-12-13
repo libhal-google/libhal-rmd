@@ -23,16 +23,17 @@ constexpr auto prefilled_messages(hal::byte p_command_byte = 0x00)
 };
 }  // namespace
 
-boost::ut::suite drc_test = []() {
+void drc_test()
+{
   using namespace boost::ut;
 
   "drc::create()"_test = []() {
     // Setup
     mock::can mock_can;
-    auto router = can_router::create(mock_can).value();
+    auto router = hal::can_router::create(mock_can).value();
     auto expected = prefilled_messages<2>();
-    expected[0].payload[0] = value(drc::system::off);
-    expected[1].payload[0] = value(drc::system::running);
+    expected[0].payload[0] = hal::value(drc::system::off);
+    expected[1].payload[0] = hal::value(drc::system::running);
 
     // Exercise
     auto driver = drc::create(router, expected_gear_ratio, expected_id).value();
@@ -46,12 +47,12 @@ boost::ut::suite drc_test = []() {
   "drc::create() failure"_test = []() {
     // Setup
     mock::can mock_can;
-    auto router = can_router::create(mock_can).value();
+    auto router = hal::can_router::create(mock_can).value();
     mock_can.spy_send.trigger_error_on_call(1);
 
     constexpr can::message_t expected1{
       .id = expected_id,
-      .payload = { value(drc::system::off),
+      .payload = { hal::value(drc::system::off),
                    0x00,
                    0x00,
                    0x00,
@@ -67,16 +68,16 @@ boost::ut::suite drc_test = []() {
 
     // Verify
     expect(that % 1 == mock_can.spy_send.call_history().size());
-    expect(expected1 == mock_can.spy_send.history<0>(0));
+    expect(that % expected1 == mock_can.spy_send.history<0>(0));
   };
 
   "drc::velocity_control()"_test = []() {
     // Setup
     mock::can mock_can;
-    auto router = can_router::create(mock_can).value();
+    auto router = hal::can_router::create(mock_can).value();
     auto driver = drc::create(router, expected_gear_ratio, expected_id).value();
     mock_can.reset();
-    auto expected = prefilled_messages<7>(value(drc::actuate::speed));
+    auto expected = prefilled_messages<7>(hal::value(drc::actuate::speed));
     std::array injected_rpm{
       0.0_rpm, 10.0_rpm, 10.0_rpm, 123.0_rpm, 0.0_rpm, 1024.0_rpm,
     };
@@ -128,7 +129,7 @@ boost::ut::suite drc_test = []() {
   "drc::velocity_control() fails out of bounds"_test = []() {
     // Setup
     mock::can mock_can;
-    auto router = can_router::create(mock_can).value();
+    auto router = hal::can_router::create(mock_can).value();
     auto driver = drc::create(router, expected_gear_ratio, expected_id).value();
     mock_can.reset();
 
@@ -147,10 +148,10 @@ boost::ut::suite drc_test = []() {
   "drc::position_control()"_test = []() {
     // Setup
     mock::can mock_can;
-    auto router = can_router::create(mock_can).value();
+    auto router = hal::can_router::create(mock_can).value();
     auto driver = drc::create(router, expected_gear_ratio, expected_id).value();
     mock_can.reset();
-    auto expected = prefilled_messages<6>(value(drc::actuate::position_2));
+    auto expected = prefilled_messages<6>(hal::value(drc::actuate::position_2));
     using payload_t = decltype(expected[0].payload);
 
     // Setup: values verified to be correct
@@ -200,7 +201,7 @@ boost::ut::suite drc_test = []() {
   "drc::position_control() fails"_test = []() {
     // Setup
     mock::can mock_can;
-    auto router = can_router::create(mock_can).value();
+    auto router = hal::can_router::create(mock_can).value();
     auto driver = drc::create(router, expected_gear_ratio, expected_id).value();
 
     // Exercise
@@ -225,7 +226,7 @@ boost::ut::suite drc_test = []() {
   "drc::feedback_request()"_test = []() {
     // Setup
     mock::can mock_can;
-    auto router = can_router::create(mock_can).value();
+    auto router = hal::can_router::create(mock_can).value();
     auto driver = drc::create(router, expected_gear_ratio, expected_id).value();
     mock_can.reset();
 
@@ -274,7 +275,7 @@ boost::ut::suite drc_test = []() {
   "drc::feedback_request() fails"_test = []() {
     // Setup
     mock::can mock_can;
-    auto router = can_router::create(mock_can).value();
+    auto router = hal::can_router::create(mock_can).value();
     auto driver = drc::create(router, expected_gear_ratio, expected_id).value();
 
     mock_can.spy_send.reset();
@@ -291,7 +292,7 @@ boost::ut::suite drc_test = []() {
   "drc::system_control()"_test = []() {
     // Setup
     mock::can mock_can;
-    auto router = can_router::create(mock_can).value();
+    auto router = hal::can_router::create(mock_can).value();
     auto driver = drc::create(router, expected_gear_ratio, expected_id).value();
     mock_can.reset();
 
@@ -324,7 +325,7 @@ boost::ut::suite drc_test = []() {
   "drc::system_control() fails"_test = []() {
     // Setup
     mock::can mock_can;
-    auto router = can_router::create(mock_can).value();
+    auto router = hal::can_router::create(mock_can).value();
     auto driver = drc::create(router, expected_gear_ratio, expected_id).value();
 
     mock_can.spy_send.reset();

@@ -16,7 +16,7 @@ namespace hal::rmd {
  *
  *
  */
-class drc : public move_interceptor<drc>
+class drc : public hal::move_interceptor<drc>
 {
 public:
   friend class move_interceptor<drc>;
@@ -120,7 +120,7 @@ public:
     }
   };
 
-  static result<drc> create(can_router& p_router,
+  static result<drc> create(hal::can_router& p_router,
                             float p_gear_ratio,
                             can::id_t device_id)
   {
@@ -148,7 +148,7 @@ public:
   void operator()(const can::message_t& p_message) noexcept;
 
 private:
-  drc(can_router& p_router, float p_gear_ratio, can::id_t p_device_id)
+  drc(hal::can_router& p_router, float p_gear_ratio, can::id_t p_device_id)
     : m_feedback{}
     , m_router(&p_router)
     , m_route_item(p_router.add_message_callback(p_device_id))
@@ -192,8 +192,8 @@ private:
   }
 
   feedback_t m_feedback{};
-  can_router* m_router;
-  can_router::route_item m_route_item;
+  hal::can_router* m_router;
+  hal::can_router::route_item m_route_item;
   float m_gear_ratio;
   can::id_t m_device_id;
 };
@@ -213,7 +213,7 @@ inline status drc::velocity_control(rpm p_rpm) noexcept
   const auto speed_data = HAL_CHECK(rpm_to_drc_speed(p_rpm, dps_per_lsb_speed));
 
   return m_router->bus().send(message({
-    value(actuate::speed),
+    hal::value(actuate::speed),
     0x00,
     0x00,
     0x00,
@@ -232,7 +232,7 @@ inline status drc::position_control(angle p_angle, rpm p_rpm) noexcept
   const auto speed_data = HAL_CHECK(rpm_to_drc_speed(p_rpm, dps_per_lsb_angle));
 
   return m_router->bus().send(message({
-    value(actuate::position_2),
+    hal::value(actuate::position_2),
     0x00,
     static_cast<hal::byte>((speed_data >> 0) & 0xFF),
     static_cast<hal::byte>((speed_data >> 8) & 0xFF),
@@ -246,7 +246,7 @@ inline status drc::position_control(angle p_angle, rpm p_rpm) noexcept
 inline status drc::feedback_request(read p_command) noexcept
 {
   return m_router->bus().send(message({
-    value(p_command),
+    hal::value(p_command),
     0x00,
     0x00,
     0x00,
@@ -260,7 +260,7 @@ inline status drc::feedback_request(read p_command) noexcept
 inline status drc::system_control(system p_system_command) noexcept
 {
   return m_router->bus().send(message({
-    value(p_system_command),
+    hal::value(p_system_command),
     0x00,
     0x00,
     0x00,
@@ -278,13 +278,13 @@ inline void drc::operator()(const can::message_t& p_message) noexcept
   }
 
   switch (p_message.payload[0]) {
-    case value(read::status_2):
-    case value(actuate::torque):
-    case value(actuate::speed):
-    case value(actuate::position_1):
-    case value(actuate::position_2):
-    case value(actuate::position_3):
-    case value(actuate::position_4): {
+    case hal::value(read::status_2):
+    case hal::value(actuate::torque):
+    case hal::value(actuate::speed):
+    case hal::value(actuate::position_1):
+    case hal::value(actuate::position_2):
+    case hal::value(actuate::position_3):
+    case hal::value(actuate::position_4): {
       auto& data = p_message.payload;
       m_feedback.raw_motor_temperature = static_cast<int8_t>(data[1]);
       m_feedback.raw_current = static_cast<int16_t>((data[3] << 8) | data[2]);
@@ -292,7 +292,7 @@ inline void drc::operator()(const can::message_t& p_message) noexcept
       m_feedback.encoder = static_cast<int16_t>((data[7] << 8) | data[6]);
       break;
     }
-    case value(read::status_1_and_error_flags): {
+    case hal::value(read::status_1_and_error_flags): {
       auto& data = p_message.payload;
       m_feedback.raw_motor_temperature = static_cast<int8_t>(data[1]);
       m_feedback.raw_volts = static_cast<int16_t>((data[4] << 8) | data[3]);
