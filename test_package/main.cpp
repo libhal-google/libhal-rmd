@@ -6,17 +6,16 @@ class do_nothing_can : public hal::can
 {
 public:
   hal::status driver_configure(
-    [[maybe_unused]] const settings& p_settings) noexcept override
+    [[maybe_unused]] const settings& p_settings) override
   {
     return hal::success();
   }
-  hal::status driver_send(
-    [[maybe_unused]] const message_t& p_message) noexcept override
+  hal::status driver_send([[maybe_unused]] const message_t& p_message) override
   {
     return hal::success();
   }
   hal::status driver_on_receive(
-    [[maybe_unused]] std::function<handler> p_handler) noexcept override
+    [[maybe_unused]] std::function<handler> p_handler) override
   {
     return hal::success();
   }
