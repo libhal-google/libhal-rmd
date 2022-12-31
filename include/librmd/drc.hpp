@@ -135,17 +135,17 @@ public:
   drc(drc&& p_old_self) = default;
   drc& operator=(drc&& p_old_self) = default;
 
-  status velocity_control(rpm p_speed) noexcept;
-  status position_control(angle p_angle, rpm speed) noexcept;
-  status feedback_request(read p_command) noexcept;
-  status system_control(system p_system_command) noexcept;
+  status velocity_control(rpm p_speed);
+  status position_control(angle p_angle, rpm speed);
+  status feedback_request(read p_command);
+  status system_control(system p_system_command);
 
-  const feedback_t& feedback() const noexcept
+  const feedback_t& feedback() const
   {
     return m_feedback;
   }
 
-  void operator()(const can::message_t& p_message) noexcept;
+  void operator()(const can::message_t& p_message);
 
 private:
   drc(hal::can_router& p_router, float p_gear_ratio, can::id_t p_device_id)
@@ -168,7 +168,7 @@ private:
     p_old_self->m_route_item.get().handler = std::ref(*this);
   }
 
-  can::message_t message(std::array<hal::byte, 8> p_payload) const noexcept
+  can::message_t message(std::array<hal::byte, 8> p_payload) const
   {
     can::message_t message{ .id = m_device_id, .length = 8 };
     message.payload = p_payload;
@@ -208,7 +208,7 @@ inline result<std::int32_t> drc::rpm_to_drc_speed(rpm p_rpm,
   return bounds_check<std::int32_t>(dps_float);
 }
 
-inline status drc::velocity_control(rpm p_rpm) noexcept
+inline status drc::velocity_control(rpm p_rpm)
 {
   const auto speed_data = HAL_CHECK(rpm_to_drc_speed(p_rpm, dps_per_lsb_speed));
 
@@ -224,7 +224,7 @@ inline status drc::velocity_control(rpm p_rpm) noexcept
   }));
 }
 
-inline status drc::position_control(angle p_angle, rpm p_rpm) noexcept
+inline status drc::position_control(angle p_angle, rpm p_rpm)
 {
   static constexpr float deg_per_lsb = 0.01f;
   const auto angle = (p_angle * m_gear_ratio) / deg_per_lsb;
@@ -243,7 +243,7 @@ inline status drc::position_control(angle p_angle, rpm p_rpm) noexcept
   }));
 }
 
-inline status drc::feedback_request(read p_command) noexcept
+inline status drc::feedback_request(read p_command)
 {
   return m_router->bus().send(message({
     hal::value(p_command),
@@ -257,7 +257,7 @@ inline status drc::feedback_request(read p_command) noexcept
   }));
 }
 
-inline status drc::system_control(system p_system_command) noexcept
+inline status drc::system_control(system p_system_command)
 {
   return m_router->bus().send(message({
     hal::value(p_system_command),
@@ -271,7 +271,7 @@ inline status drc::system_control(system p_system_command) noexcept
   }));
 }
 
-inline void drc::operator()(const can::message_t& p_message) noexcept
+inline void drc::operator()(const can::message_t& p_message)
 {
   if (p_message.length != 8 || p_message.id != m_device_id) {
     return;
