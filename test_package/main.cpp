@@ -1,4 +1,5 @@
 #include <libhal-util/can.hpp>
+#include <libhal/alias.hpp>
 #include <libhal/can.hpp>
 #include <librmd/drc.hpp>
 
@@ -15,7 +16,7 @@ public:
     return hal::success();
   }
   hal::status driver_on_receive(
-    [[maybe_unused]] std::function<handler> p_handler) override
+    [[maybe_unused]] hal::function_ref<handler> p_handler) override
   {
     return hal::success();
   }
