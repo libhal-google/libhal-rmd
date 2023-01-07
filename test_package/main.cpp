@@ -1,6 +1,6 @@
 #include <libhal-util/can.hpp>
-#include <libhal/alias.hpp>
 #include <libhal/can.hpp>
+#include <libhal/functional.hpp>
 #include <librmd/drc.hpp>
 
 class do_nothing_can : public hal::can
@@ -16,7 +16,7 @@ public:
     return hal::success();
   }
   hal::status driver_on_receive(
-    [[maybe_unused]] hal::function_ref<handler> p_handler) override
+    [[maybe_unused]] hal::callback<handler> p_handler) override
   {
     return hal::success();
   }
