@@ -9,12 +9,12 @@ import os
 required_conan_version = ">=1.50.0"
 
 
-class LibrmdConan(ConanFile):
-    name = "librmd"
+class LibhalRmdConan(ConanFile):
+    name = "libhal-rmd"
     version = "0.3.3"
     license = "Apache-2.0"
     url = "https://github.com/conan-io/conan-center-index"
-    homepage = "https://libhal.github.io/librmd"
+    homepage = "https://libhal.github.io/libhal-rmd"
     description = (
         "A collection of drivers for the RMD series servos and actuators")
     topics = ("servo", "smart servo", "PID")
@@ -75,3 +75,4 @@ class LibrmdConan(ConanFile):
         self.cpp_info.frameworkdirs = []
         self.cpp_info.libdirs = []
         self.cpp_info.resdirs = []
+        self.cpp_info.set_property("cmake_target_name", "libhal::rmd")

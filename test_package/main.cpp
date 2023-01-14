@@ -1,7 +1,7 @@
+#include <libhal-rmd/drc.hpp>
 #include <libhal-util/can.hpp>
 #include <libhal/can.hpp>
 #include <libhal/functional.hpp>
-#include <librmd/drc.hpp>
 
 class do_nothing_can : public hal::can
 {

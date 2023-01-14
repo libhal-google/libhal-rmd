@@ -1,24 +1,24 @@
-# librmd
+# libhal-rmd
 
-[![.github/workflows/presubmit.yml](https://github.com/libhal/librmd/actions/workflows/presubmit.yml/badge.svg?branch=main)](https://github.com/libhal/librmd/actions/workflows/presubmit.yml)
+[![.github/workflows/presubmit.yml](https://github.com/libhal/libhal-rmd/actions/workflows/presubmit.yml/badge.svg?branch=main)](https://github.com/libhal/libhal-rmd/actions/workflows/presubmit.yml)
 
 Drivers for the LPC40xx series of microcontrollers conforming to the libhal
 interface specification.
 
-# [📚 Software APIs](https://libhal.github.io/librmd/api)
+# [📚 Software APIs](https://libhal.github.io/libhal-rmd/api)
 
 # 📥 Install
 
-## [Install libhal Prerequisites](https://github.com/libhal/libhal/blob/main/docs/prerequisites.md)
+## [Install libhal Prerequisites](https://libhal.github.io/prerequisites/)
 
 ## [Install libarmcortex Prerequisites](https://github.com/libhal/libarmcortex/blob/main/docs/prerequisites.md)
 
 ## Install using conan via from Conan Center Index
 
-For future use. `librmd` is not currently on the Conan Center Index.
+For future use. `libhal-rmd` is not currently on the Conan Center Index.
 
 ```bash
-conan install librmd
+conan install libhal-rmd
 ```
 
 ## Install using conan via libhal-trunk
@@ -42,7 +42,7 @@ conan config set general.revisions_enabled=True
 Now when you run
 
 ```
-conan install librmd
+conan install libhal-rmd
 ```
 
 The library will be pulled from the `libhal-trunk`.
