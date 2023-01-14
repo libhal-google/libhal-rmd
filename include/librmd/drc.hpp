@@ -92,7 +92,7 @@ public:
     /// motor winding output.
     bool over_temperature_protection_tripped{ false };
 
-    auto current()
+    auto current() const noexcept
     {
       static constexpr float raw_current_range = 2048.0f;
       static constexpr auto current_range = 33.0_A;
@@ -101,19 +101,19 @@ public:
                       std::make_pair(-current_range, current_range));
     }
 
-    auto speed()
+    auto speed() const noexcept
     {
       static constexpr auto velocity_per_lsb = 1.0_deg_per_sec;
       return static_cast<float>(raw_speed) * velocity_per_lsb;
     }
 
-    auto volts()
+    auto volts() const noexcept
     {
       static constexpr float volts_per_lsb = 0.1f;
       return static_cast<float>(raw_volts) * volts_per_lsb;
     }
 
-    auto temperature()
+    auto temperature() const noexcept
     {
       static constexpr float celsius_per_lsb = 1.0f;
       return static_cast<float>(raw_motor_temperature) * celsius_per_lsb;
