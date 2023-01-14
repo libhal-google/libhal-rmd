@@ -13,6 +13,6 @@ jobs:
   lint:
     uses: libhal/libhal/.github/workflows/checks.yml@main
     with:
-      library: librmd
+      library: libhal-rmd
       coverage: true
     secrets: inherit
