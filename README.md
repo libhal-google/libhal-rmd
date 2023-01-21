@@ -1,7 +1,13 @@
 # libhal-rmd
 
 [![✅ Checks](https://github.com/libhal/libhal-rmd/actions/workflows/ci.yml/badge.svg)](https://github.com/libhal/libhal-rmd/actions/workflows/ci.yml)
-[![Code Coverage](https://libhal.github.io/libhal-rmd/coverage/coverage.svg)](https://libhal.github.io/libhal-rmd/coverage/)
+[![coverage](https://libhal.github.io/libhal-rmd/coverage/coverage.svg)](https://libhal.github.io/libhal-rmd/coverage/)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b084e6d5962d49a9afcb275d62cd6586)](https://www.codacy.com/gh/libhal/libhal-rmd/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=libhal/libhal-rmd&amp;utm_campaign=Badge_Grade)
+[![GitHub stars](https://img.shields.io/github/stars/libhal/libhal-rmd.svg)](https://github.com/libhal/libhal-rmd/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/libhal/libhal-rmd.svg)](https://github.com/libhal/libhal-rmd/network)
+[![GitHub issues](https://img.shields.io/github/issues/libhal/libhal-rmd.svg)](https://github.com/libhal/libhal-rmd/issues)
+[![Latest Version](https://libhal.github.io/libhal-rmd/latest_version.svg)](https://github.com/libhal/libhal-rmd/blob/main/conanfile.py)
+[![ConanCenter Version](https://repology.org/badge/version-for-repo/conancenter/libhal-rmd.svg)](https://conan.io/center/libhal-rmd)
 
 
 # [📚 Software APIs](https://libhal.github.io/libhal-rmd/api)
