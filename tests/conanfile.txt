@@ -1,7 +1,7 @@
 [requires]
 boost-ext-ut/1.1.8
-libhal/0.3.2
-libhal-util/0.3.3
+libhal/0.3.3
+libhal-util/0.3.7
 libhal-mock/0.3.2
 
 [generators]

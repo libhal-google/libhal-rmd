@@ -136,7 +136,7 @@ public:
   drc& operator=(drc&& p_old_self) = default;
 
   status velocity_control(rpm p_speed);
-  status position_control(angle p_angle, rpm speed);
+  status position_control(degrees p_angle, rpm speed);
   status feedback_request(read p_command);
   status system_control(system p_system_command);
 
@@ -224,7 +224,7 @@ inline status drc::velocity_control(rpm p_rpm)
   }));
 }
 
-inline status drc::position_control(angle p_angle, rpm p_rpm)
+inline status drc::position_control(degrees p_angle, rpm p_rpm)
 {
   static constexpr float deg_per_lsb = 0.01f;
   const auto angle = (p_angle * m_gear_ratio) / deg_per_lsb;

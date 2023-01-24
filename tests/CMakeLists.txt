@@ -56,5 +56,5 @@ target_link_options(${PROJECT_NAME} PRIVATE
   -fsanitize=address)
 target_link_libraries(${PROJECT_NAME} PRIVATE
   boost::ut
-  libhal-util::libhal-util
+  libhal::util
   libhal-mock::libhal-mock)
