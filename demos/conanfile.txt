@@ -1,0 +1,13 @@
+[requires]
+libhal-lpc40xx/0.3.10
+libhal-rmd/0.3.6
+libhal-util/0.3.8
+
+[tool_requires]
+gnu-arm-embedded-toolchain/11.3.0
+cmake-arm-embedded/0.1.1
+
+[generators]
+CMakeToolchain
+CMakeDeps
+VirtualBuildEnv
