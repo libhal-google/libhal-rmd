@@ -6,7 +6,6 @@
 #include <libhal-util/can.hpp>
 #include <libhal-util/enum.hpp>
 #include <libhal-util/map.hpp>
-#include <libhal-util/move_interceptor.hpp>
 #include <libhal/can.hpp>
 #include <libhal/units.hpp>
 
@@ -14,13 +13,10 @@ namespace hal::rmd {
 /**
  * @brief Driver for RMD motors equip with the DRC motor drivers
  *
- *
  */
-class drc : public hal::move_interceptor<drc>
+class drc
 {
 public:
-  friend class move_interceptor<drc>;
-
   /// Operating baudrate of all RMD-X smart servos
   static constexpr hertz baudrate_hz = 1'000'000;
 
@@ -76,21 +72,25 @@ public:
   {
     /// Current flowing through the motor windings
     //  (-2048 <-> 2048 ==> -33A <-> 33A)
-    int16_t raw_current{ 0 };
+    std::int16_t raw_current{ 0 };
     /// Rotational velocity of the motor (1 degrees per second (dps)/LSB)
-    int16_t raw_speed{ 0 };
+    std::int16_t raw_speed{ 0 };
     /// Motor's supply voltage (0.1V/LSB)
-    int16_t raw_volts{ 0 };
+    std::int16_t raw_volts{ 0 };
     /// Signed 16-bit raw encoder count value of the motor
-    int16_t encoder{ 0 };
+    std::int16_t encoder{ 0 };
     /// Core temperature of the motor (1C/LSB)
-    int8_t raw_motor_temperature{ 0 };
+    std::int8_t raw_motor_temperature{ 0 };
     /// Error code indicating an over voltage protection event on from the motor
     /// winding output.
     bool over_voltage_protection_tripped{ false };
     /// Error code indicating an over temperature protection event on from the
     /// motor winding output.
     bool over_temperature_protection_tripped{ false };
+    /// Every time a message from our motor is received this number increments.
+    /// This can be used to indicate if the feedback has updated since the last
+    /// time it was read.
+    std::uint32_t message_number = 0;
 
     auto current() const noexcept
     {
@@ -130,10 +130,30 @@ public:
     return drc_driver;
   }
 
-  drc(drc& p_old_self) = delete;
-  drc& operator=(drc& p_old_self) = delete;
-  drc(drc&& p_old_self) = default;
-  drc& operator=(drc&& p_old_self) = default;
+  drc(drc& p_other) = delete;
+  drc& operator=(drc& p_other) = delete;
+  drc(drc&& p_other)
+    : m_feedback(std::move(p_other.m_feedback))
+    , m_router(std::move(p_other.m_router))
+    , m_route_item(std::move(p_other.m_route_item))
+    , m_gear_ratio(std::move(p_other.m_gear_ratio))
+    , m_device_id(std::move(p_other.m_device_id))
+  {
+    m_route_item.get().handler = std::ref(*this);
+  }
+
+  drc& operator=(drc&& p_other)
+  {
+    m_feedback = std::move(p_other.m_feedback);
+    m_router = std::move(p_other.m_router);
+    m_route_item = std::move(p_other.m_route_item);
+    m_gear_ratio = std::move(p_other.m_gear_ratio);
+    m_device_id = std::move(p_other.m_device_id);
+
+    m_route_item.get().handler = std::ref(*this);
+
+    return *this;
+  }
 
   status velocity_control(rpm p_speed);
   status position_control(degrees p_angle, rpm speed);
@@ -155,17 +175,7 @@ private:
     , m_gear_ratio(p_gear_ratio)
     , m_device_id(p_device_id)
   {
-    intercept(this);
-  }
-
-  /**
-   * @brief Update the callback location if this object is moved
-   *
-   * @param p_old_self - the old version of this driver
-   */
-  void intercept(drc* p_old_self)
-  {
-    p_old_self->m_route_item.get().handler = std::ref(*this);
+    m_route_item.get().handler = std::ref(*this);
   }
 
   can::message_t message(std::array<hal::byte, 8> p_payload) const
@@ -273,6 +283,8 @@ inline status drc::system_control(system p_system_command)
 
 inline void drc::operator()(const can::message_t& p_message)
 {
+  m_feedback.message_number++;
+
   if (p_message.length != 8 || p_message.id != m_device_id) {
     return;
   }
