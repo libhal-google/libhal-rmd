@@ -15,10 +15,8 @@ public:
   {
     return hal::success();
   }
-  hal::status driver_on_receive(
-    [[maybe_unused]] hal::callback<handler> p_handler) override
+  void driver_on_receive(hal::callback<handler>) override
   {
-    return hal::success();
   }
 };
 
