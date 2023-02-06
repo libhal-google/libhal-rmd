@@ -4,7 +4,6 @@ project(demos VERSION 0.0.1 LANGUAGES CXX)
 
 find_package(libhal-lpc40xx REQUIRED CONFIG)
 find_package(libhal-rmd REQUIRED CONFIG)
-find_package(libhal-util REQUIRED CONFIG)
 
 set(DEMOS drc)
 set(TARGETS lpc4078 lpc4074)
@@ -25,8 +24,7 @@ foreach(target IN LISTS TARGETS)
         target_link_options(${current_project} PRIVATE -u _printf_float)
         target_link_libraries(${current_project} PRIVATE
             libhal::${target}
-            libhal::rmd
-            libhal::util)
+            libhal::rmd)
         arm_post_build(${current_project})
     endforeach()
 endforeach()
