@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(demos VERSION 0.0.1 LANGUAGES CXX)
-
-find_package(libhal-lpc40xx REQUIRED CONFIG)
-find_package(libhal-rmd REQUIRED CONFIG)
-
 if(NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug" CACHE INTERNAL "Default to Debug Build")
 endif(NOT DEFINED CMAKE_BUILD_TYPE)
 
 set(CMAKE_TOOLCHAIN_FILE conan_toolchain.cmake)
 
-set(DEMOS drc)
+project(demos VERSION 0.0.1 LANGUAGES CXX)
+
+find_package(libhal-lpc40xx REQUIRED CONFIG)
+find_package(libhal-rmd REQUIRED CONFIG)
+
+set(DEMOS drc mc_x)
 set(TARGETS lpc4078 lpc4074)
 
 foreach(target IN LISTS TARGETS)
