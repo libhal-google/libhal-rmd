@@ -3,10 +3,13 @@
 #include <atomic>
 #include <cstdint>
 
+#include <libhal-util/bit.hpp>
 #include <libhal-util/can.hpp>
 #include <libhal-util/enum.hpp>
 #include <libhal-util/map.hpp>
+#include <libhal-util/steady_clock.hpp>
 #include <libhal/can.hpp>
+#include <libhal/steady_clock.hpp>
 #include <libhal/units.hpp>
 
 namespace hal::rmd {
@@ -26,25 +29,42 @@ public:
   /// Commands that can be issued to a RMD-X motor
   enum class read : hal::byte
   {
-    pid_data = 0x30,
-    acceleration_data = 0x33,
-    encoder_data = 0x90,
+    /**
+     * @brief Status1 + error flag information read request command
+     *
+     * Sending this request will update the following fields in the feedback_t:
+     *
+     *    - raw_multi_turn_angle
+     */
     multi_turns_angle = 0x92,
-    single_circle_angle = 0x94,
+    /**
+     * @brief Status1 + error flag information read request command
+     *
+     * Sending this request will update the following fields in the feedback_t:
+     *
+     *    - raw_motor_temperature
+     *    - over_voltage_protection_tripped
+     *    - over_temperature_protection_tripped
+     */
     status_1_and_error_flags = 0x9A,
+    /**
+     * @brief Status2 read request command
+     *
+     * Sending this request will update the following fields in the feedback_t:
+     *
+     *    - raw_motor_temperature
+     *    - raw_current
+     *    - raw_speed
+     *    - encoder
+     */
     status_2 = 0x9C,
-    status_3 = 0x9D,
   };
 
   /// Commands for actuate the motor
   enum class actuate : hal::byte
   {
-    torque = 0xA1,
     speed = 0xA2,
-    position_1 = 0xA3,
     position_2 = 0xA4,
-    position_3 = 0xA5,
-    position_4 = 0xA6,
   };
 
   /// Commands for updating motor configuration data
@@ -70,8 +90,14 @@ public:
   /// motor
   struct feedback_t
   {
+    /// Every time a message from our motor is received this number increments.
+    /// This can be used to indicate if the feedback has updated since the last
+    /// time it was read.
+    std::uint32_t message_number = 0;
+    /// Raw multi-turn angle (0.01°/LSB)
+    std::int64_t raw_multi_turn_angle{ 0 };
     /// Current flowing through the motor windings
-    //  (-2048 <-> 2048 ==> -33A <-> 33A)
+    /// (-2048 <-> 2048 ==> -33A <-> 33A)
     std::int16_t raw_current{ 0 };
     /// Rotational velocity of the motor (1 degrees per second (dps)/LSB)
     std::int16_t raw_speed{ 0 };
@@ -87,10 +113,6 @@ public:
     /// Error code indicating an over temperature protection event on from the
     /// motor winding output.
     bool over_temperature_protection_tripped{ false };
-    /// Every time a message from our motor is received this number increments.
-    /// This can be used to indicate if the feedback has updated since the last
-    /// time it was read.
-    std::uint32_t message_number = 0;
 
     auto current() const noexcept
     {
@@ -118,13 +140,22 @@ public:
       static constexpr float celsius_per_lsb = 1.0f;
       return static_cast<float>(raw_motor_temperature) * celsius_per_lsb;
     }
+
+    auto angle() const noexcept
+    {
+      return static_cast<float>(raw_multi_turn_angle) * dps_per_lsb_speed;
+    }
   };
 
-  static result<drc> create(hal::can_router& p_router,
-                            float p_gear_ratio,
-                            can::id_t device_id)
+  static result<drc> create(
+    hal::can_router& p_router,
+    hal::steady_clock& p_clock,
+    float p_gear_ratio,
+    can::id_t device_id,
+    hal::time_duration p_max_response_time = std::chrono::milliseconds(10))
   {
-    drc drc_driver(p_router, p_gear_ratio, device_id);
+    drc drc_driver(
+      p_router, p_clock, p_gear_ratio, device_id, p_max_response_time);
     HAL_CHECK(drc_driver.system_control(system::off));
     HAL_CHECK(drc_driver.system_control(system::running));
     return drc_driver;
@@ -134,10 +165,12 @@ public:
   drc& operator=(drc& p_other) = delete;
   drc(drc&& p_other)
     : m_feedback(std::move(p_other.m_feedback))
+    , m_clock(std::move(p_other.m_clock))
     , m_router(std::move(p_other.m_router))
     , m_route_item(std::move(p_other.m_route_item))
     , m_gear_ratio(std::move(p_other.m_gear_ratio))
     , m_device_id(std::move(p_other.m_device_id))
+    , m_max_response_time(std::move(p_other.m_max_response_time))
   {
     m_route_item.get().handler = std::ref(*this);
   }
@@ -145,10 +178,12 @@ public:
   drc& operator=(drc&& p_other)
   {
     m_feedback = std::move(p_other.m_feedback);
+    m_clock = std::move(p_other.m_clock);
     m_router = std::move(p_other.m_router);
     m_route_item = std::move(p_other.m_route_item);
     m_gear_ratio = std::move(p_other.m_gear_ratio);
     m_device_id = std::move(p_other.m_device_id);
+    m_max_response_time = std::move(p_other.m_max_response_time);
 
     m_route_item.get().handler = std::ref(*this);
 
@@ -165,15 +200,28 @@ public:
     return m_feedback;
   }
 
+  /**
+   * @brief Handle messages from the CANBUS with this devices ID
+   *
+   * Meant mostly for testing purposes.
+   *
+   * @param p_message - message received from the bus
+   */
   void operator()(const can::message_t& p_message);
 
 private:
-  drc(hal::can_router& p_router, float p_gear_ratio, can::id_t p_device_id)
+  drc(hal::can_router& p_router,
+      hal::steady_clock& p_clock,
+      float p_gear_ratio,
+      can::id_t p_device_id,
+      hal::time_duration p_max_response_time)
     : m_feedback{}
+    , m_clock(&p_clock)
     , m_router(&p_router)
     , m_route_item(p_router.add_message_callback(p_device_id))
     , m_gear_ratio(p_gear_ratio)
     , m_device_id(p_device_id)
+    , m_max_response_time(p_max_response_time)
   {
     m_route_item.get().handler = std::ref(*this);
   }
@@ -201,11 +249,36 @@ private:
     return new_error(std::errc::result_out_of_range);
   }
 
+  struct response_waiter
+  {
+    using message_t = decltype(feedback_t::message_number);
+    response_waiter(drc* p_this)
+      : m_this(p_this)
+    {
+      m_original_message_number = m_this->m_feedback.message_number;
+    }
+    hal::status wait()
+    {
+      auto timeout = HAL_CHECK(
+        hal::create_timeout(*m_this->m_clock, m_this->m_max_response_time));
+      while (true) {
+        if (m_original_message_number != m_this->m_feedback.message_number) {
+          return hal::success();
+        }
+        HAL_CHECK(timeout());
+      }
+    }
+    message_t m_original_message_number{ 0 };
+    drc* m_this;
+  };
+
   feedback_t m_feedback{};
+  hal::steady_clock* m_clock;
   hal::can_router* m_router;
   hal::can_router::route_item m_route_item;
   float m_gear_ratio;
   can::id_t m_device_id;
+  hal::time_duration m_max_response_time;
 };
 
 inline result<std::int32_t> drc::rpm_to_drc_speed(rpm p_rpm,
@@ -222,7 +295,9 @@ inline status drc::velocity_control(rpm p_rpm)
 {
   const auto speed_data = HAL_CHECK(rpm_to_drc_speed(p_rpm, dps_per_lsb_speed));
 
-  return m_router->bus().send(message({
+  response_waiter response(this);
+
+  HAL_CHECK(m_router->bus().send(message({
     hal::value(actuate::speed),
     0x00,
     0x00,
@@ -231,7 +306,9 @@ inline status drc::velocity_control(rpm p_rpm)
     static_cast<hal::byte>((speed_data >> 8) & 0xFF),
     static_cast<hal::byte>((speed_data >> 16) & 0xFF),
     static_cast<hal::byte>((speed_data >> 24) & 0xFF),
-  }));
+  })));
+
+  return response.wait();
 }
 
 inline status drc::position_control(degrees p_angle, rpm p_rpm)
@@ -241,7 +318,9 @@ inline status drc::position_control(degrees p_angle, rpm p_rpm)
   const auto angle_data = HAL_CHECK(bounds_check<std::int32_t>(angle));
   const auto speed_data = HAL_CHECK(rpm_to_drc_speed(p_rpm, dps_per_lsb_angle));
 
-  return m_router->bus().send(message({
+  response_waiter response(this);
+
+  HAL_CHECK(m_router->bus().send(message({
     hal::value(actuate::position_2),
     0x00,
     static_cast<hal::byte>((speed_data >> 0) & 0xFF),
@@ -250,12 +329,16 @@ inline status drc::position_control(degrees p_angle, rpm p_rpm)
     static_cast<hal::byte>((angle_data >> 8) & 0xFF),
     static_cast<hal::byte>((angle_data >> 16) & 0xFF),
     static_cast<hal::byte>((angle_data >> 24) & 0xFF),
-  }));
+  })));
+
+  return response.wait();
 }
 
 inline status drc::feedback_request(read p_command)
 {
-  return m_router->bus().send(message({
+  response_waiter response(this);
+
+  HAL_CHECK(m_router->bus().send(message({
     hal::value(p_command),
     0x00,
     0x00,
@@ -264,12 +347,16 @@ inline status drc::feedback_request(read p_command)
     0x00,
     0x00,
     0x00,
-  }));
+  })));
+
+  return response.wait();
 }
 
 inline status drc::system_control(system p_system_command)
 {
-  return m_router->bus().send(message({
+  response_waiter response(this);
+
+  HAL_CHECK(m_router->bus().send(message({
     hal::value(p_system_command),
     0x00,
     0x00,
@@ -278,7 +365,9 @@ inline status drc::system_control(system p_system_command)
     0x00,
     0x00,
     0x00,
-  }));
+  })));
+
+  return response.wait();
 }
 
 inline void drc::operator()(const can::message_t& p_message)
@@ -291,25 +380,39 @@ inline void drc::operator()(const can::message_t& p_message)
 
   switch (p_message.payload[0]) {
     case hal::value(read::status_2):
-    case hal::value(actuate::torque):
     case hal::value(actuate::speed):
-    case hal::value(actuate::position_1):
-    case hal::value(actuate::position_2):
-    case hal::value(actuate::position_3):
-    case hal::value(actuate::position_4): {
+    case hal::value(actuate::position_2): {
       auto& data = p_message.payload;
-      m_feedback.raw_motor_temperature = static_cast<int8_t>(data[1]);
-      m_feedback.raw_current = static_cast<int16_t>((data[3] << 8) | data[2]);
-      m_feedback.raw_speed = static_cast<int16_t>((data[5] << 8) | data[4]);
-      m_feedback.encoder = static_cast<int16_t>((data[7] << 8) | data[6]);
+      m_feedback.raw_motor_temperature = static_cast<std::int8_t>(data[1]);
+      m_feedback.raw_current =
+        static_cast<std::int16_t>((data[3] << 8) | data[2] << 0);
+      m_feedback.raw_speed =
+        static_cast<std::int16_t>((data[5] << 8) | data[4] << 0);
+      m_feedback.encoder =
+        static_cast<std::int16_t>((data[7] << 8) | data[6] << 0);
       break;
     }
     case hal::value(read::status_1_and_error_flags): {
       auto& data = p_message.payload;
       m_feedback.raw_motor_temperature = static_cast<int8_t>(data[1]);
-      m_feedback.raw_volts = static_cast<int16_t>((data[4] << 8) | data[3]);
+      m_feedback.raw_volts =
+        static_cast<std::int16_t>((data[4] << 8) | data[3]);
       m_feedback.over_voltage_protection_tripped = data[7] & 0b1;
       m_feedback.over_temperature_protection_tripped = data[7] & 0b100;
+      break;
+    }
+    case hal::value(read::multi_turns_angle): {
+      auto& data = p_message.payload;
+
+      m_feedback.raw_multi_turn_angle = hal::bit::value(0U)
+                                          .insert<bit::byte_m<0>>(data[1])
+                                          .insert<bit::byte_m<1>>(data[2])
+                                          .insert<bit::byte_m<2>>(data[3])
+                                          .insert<bit::byte_m<3>>(data[4])
+                                          .insert<bit::byte_m<4>>(data[5])
+                                          .insert<bit::byte_m<5>>(data[6])
+                                          .insert<bit::byte_m<6>>(data[7])
+                                          .to<std::int64_t>();
       break;
     }
     default:
