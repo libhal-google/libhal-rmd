@@ -107,12 +107,12 @@ public:
     std::int16_t encoder{ 0 };
     /// Core temperature of the motor (1C/LSB)
     std::int8_t raw_motor_temperature{ 0 };
-    /// Error code indicating an over voltage protection event on from the motor
-    /// winding output.
-    bool over_voltage_protection_tripped{ false };
-    /// Error code indicating an over temperature protection event on from the
-    /// motor winding output.
-    bool over_temperature_protection_tripped{ false };
+    /// 8-bit value containing error flag information
+    std::uint8_t raw_error_state{ 0 };
+
+    static constexpr std::uint8_t over_voltage_protection_tripped_mask = 0b1;
+    static constexpr std::uint8_t over_temperature_protection_tripped_mask =
+      0b100;
 
     auto current() const noexcept
     {
@@ -144,6 +144,34 @@ public:
     auto angle() const noexcept
     {
       return static_cast<float>(raw_multi_turn_angle) * dps_per_lsb_speed;
+    }
+
+    /**
+     * @brief Return if the motor has detected an over voltage event
+     *
+     * In order for this field to be updated a feedback_request with
+     * status_1_and_error_flags must be issued.
+     *
+     * @return true - over voltage protection tripped
+     * @return false - over voltage protection has not tripped
+     */
+    bool over_voltage_protection_tripped() const noexcept
+    {
+      return raw_error_state & over_temperature_protection_tripped_mask;
+    }
+
+    /**
+     * @brief Return if the motor has detected an over temperature event
+     *
+     * In order for this field to be updated a feedback_request with
+     * status_1_and_error_flags must be issued.
+     *
+     * @return true - over temperature protection tripped
+     * @return false - over temperature protection has not tripped
+     */
+    bool over_temperature_protection_tripped() const noexcept
+    {
+      return raw_error_state & over_temperature_protection_tripped_mask;
     }
   };
 
@@ -397,8 +425,7 @@ inline void drc::operator()(const can::message_t& p_message)
       m_feedback.raw_motor_temperature = static_cast<int8_t>(data[1]);
       m_feedback.raw_volts =
         static_cast<std::int16_t>((data[4] << 8) | data[3]);
-      m_feedback.over_voltage_protection_tripped = data[7] & 0b1;
-      m_feedback.over_temperature_protection_tripped = data[7] & 0b100;
+      m_feedback.raw_error_state = data[7];
       break;
     }
     case hal::value(read::multi_turns_angle): {

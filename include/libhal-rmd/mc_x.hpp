@@ -153,7 +153,7 @@ public:
     {
       return raw_error_state & speeding_mask;
     }
-    bool motor_temperature_over_temperature() const noexcept
+    bool over_temperature() const noexcept
     {
       return raw_error_state & over_temperature_mask;
     }
@@ -209,6 +209,11 @@ public:
     return m_feedback;
   }
 
+  status feedback_request(read p_command);
+  status velocity_control(rpm p_speed);
+  status position_control(degrees p_angle, rpm speed);
+  status system_control(system p_system_command);
+
   void operator()(const can::message_t& p_message);
 
 private:
@@ -250,13 +255,6 @@ private:
 
     return new_error(std::errc::result_out_of_range);
   }
-
-  // These APIs are hidden until they are working correctly
-
-  status velocity_control(rpm p_speed);
-  status position_control(degrees p_angle, rpm speed);
-  status feedback_request(read p_command);
-  status system_control(system p_system_command);
 
   feedback_t m_feedback{};
   hal::steady_clock* m_clock;
