@@ -22,9 +22,9 @@ hal::status application(hardware_map& p_map)
   auto drc = HAL_CHECK(hal::rmd::drc::create(router, clock, 6.0f, 0x142));
 
   auto print_feedback = [&drc, &console]() {
-    drc.feedback_request(hal::rmd::drc::read::status_2);
-    drc.feedback_request(hal::rmd::drc::read::multi_turns_angle);
-    drc.feedback_request(hal::rmd::drc::read::status_1_and_error_flags);
+    (void)drc.feedback_request(hal::rmd::drc::read::status_2);
+    (void)drc.feedback_request(hal::rmd::drc::read::multi_turns_angle);
+    (void)drc.feedback_request(hal::rmd::drc::read::status_1_and_error_flags);
 
     hal::print<2048>(console,
                      "[%u] =================================\n"
@@ -64,11 +64,35 @@ hal::status application(hardware_map& p_map)
 
   while (true) {
     HAL_CHECK(drc.velocity_control(10.0_rpm));
-    (void)hal::delay(clock, 2000ms);
+    (void)hal::delay(clock, 5000ms);
     print_feedback();
 
     HAL_CHECK(drc.velocity_control(-10.0_rpm));
-    (void)hal::delay(clock, 2000ms);
+    (void)hal::delay(clock, 5000ms);
+    print_feedback();
+
+    HAL_CHECK(drc.position_control(0.0_deg, 50.0_rpm));
+    (void)hal::delay(clock, 5000ms);
+    print_feedback();
+
+    HAL_CHECK(drc.position_control(-45.0_deg, 50.0_rpm));
+    (void)hal::delay(clock, 5000ms);
+    print_feedback();
+
+    HAL_CHECK(drc.position_control(90.0_deg, 50.0_rpm));
+    (void)hal::delay(clock, 5000ms);
+    print_feedback();
+
+    HAL_CHECK(drc.position_control(180.0_deg, 50.0_rpm));
+    (void)hal::delay(clock, 5000ms);
+    print_feedback();
+
+    HAL_CHECK(drc.position_control(-360.0_deg, 50.0_rpm));
+    (void)hal::delay(clock, 5000ms);
+    print_feedback();
+
+    HAL_CHECK(drc.position_control(0.0_deg, 50.0_rpm));
+    (void)hal::delay(clock, 5000ms);
     print_feedback();
   }
 

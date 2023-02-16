@@ -22,9 +22,9 @@ hal::status application(hardware_map& p_map)
   auto mc_x = HAL_CHECK(hal::rmd::mc_x::create(router, clock, 36.0f, 0x141));
 
   auto print_feedback = [&mc_x, &clock, &console]() {
-    mc_x.feedback_request(hal::rmd::mc_x::read::status_2);
-    mc_x.feedback_request(hal::rmd::mc_x::read::multi_turns_angle);
-    mc_x.feedback_request(hal::rmd::mc_x::read::status_1_and_error_flags);
+    (void)mc_x.feedback_request(hal::rmd::mc_x::read::status_2);
+    (void)mc_x.feedback_request(hal::rmd::mc_x::read::multi_turns_angle);
+    (void)mc_x.feedback_request(hal::rmd::mc_x::read::status_1_and_error_flags);
 
     hal::print<2048>(console,
                      "[%u] =================================\n"
@@ -74,37 +74,37 @@ hal::status application(hardware_map& p_map)
   };
 
   while (true) {
-    mc_x.velocity_control(1.0_rpm);
+    HAL_CHECK(mc_x.velocity_control(50.0_rpm));
+    (void)hal::delay(clock, 10000ms);
+    print_feedback();
+
+    HAL_CHECK(mc_x.velocity_control(-50.0_rpm));
+    (void)hal::delay(clock, 10000ms);
+    print_feedback();
+
+    HAL_CHECK(mc_x.position_control(0.0_deg, 50.0_rpm));
     (void)hal::delay(clock, 5000ms);
     print_feedback();
 
-    mc_x.velocity_control(-1.0_rpm);
+    HAL_CHECK(mc_x.position_control(-45.0_deg, 50.0_rpm));
     (void)hal::delay(clock, 5000ms);
     print_feedback();
 
-    // mc_x.position_control(0.0_deg, 20.0_rpm);
-    // (void)hal::delay(clock, 2000ms);
-    // print_feedback();
+    HAL_CHECK(mc_x.position_control(90.0_deg, 50.0_rpm));
+    (void)hal::delay(clock, 5000ms);
+    print_feedback();
 
-    // mc_x.position_control(45.0_deg, 20.0_rpm);
-    // (void)hal::delay(clock, 2000ms);
-    // print_feedback();
+    HAL_CHECK(mc_x.position_control(180.0_deg, 50.0_rpm));
+    (void)hal::delay(clock, 5000ms);
+    print_feedback();
 
-    // mc_x.position_control(90.0_deg, 20.0_rpm);
-    // (void)hal::delay(clock, 2000ms);
-    // print_feedback();
+    HAL_CHECK(mc_x.position_control(-360.0_deg, 50.0_rpm));
+    (void)hal::delay(clock, 5000ms);
+    print_feedback();
 
-    // mc_x.position_control(180.0_deg, 20.0_rpm);
-    // (void)hal::delay(clock, 2000ms);
-    // print_feedback();
-
-    // mc_x.position_control(360.0_deg, 20.0_rpm);
-    // (void)hal::delay(clock, 5000ms);
-    // print_feedback();
-
-    // mc_x.position_control(0.0_deg, 20.0_rpm);
-    // (void)hal::delay(clock, 2000ms);
-    // print_feedback();
+    HAL_CHECK(mc_x.position_control(0.0_deg, 50.0_rpm));
+    (void)hal::delay(clock, 5000ms);
+    print_feedback();
   }
 
   return hal::success();

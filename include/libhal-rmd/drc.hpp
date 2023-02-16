@@ -175,7 +175,22 @@ public:
     }
   };
 
-  static result<drc> create(
+  /**
+   * @brief Create a new drc device driver
+   *
+   * This factory function will power cycle the motor
+   *
+   * @param p_router - can router to use
+   * @param p_clock - clocked used to determine timeouts
+   * @param p_gear_ratio - gear ratio of the motor
+   * @param device_id - The CAN ID of the motor
+   * @param p_max_response_time - maximum amount of time to wait for a response
+   * from the motor.
+   * @return result<drc> - the drc driver or an error
+   * @throws std::errc::timed_out - a response is not returned within the max
+   * response time when attempting to power cycle.
+   */
+  [[nodiscard]] static result<drc> create(
     hal::can_router& p_router,
     hal::steady_clock& p_clock,
     float p_gear_ratio,
@@ -218,10 +233,48 @@ public:
     return *this;
   }
 
-  status velocity_control(rpm p_speed);
-  status position_control(degrees p_angle, rpm speed);
-  status feedback_request(read p_command);
-  status system_control(system p_system_command);
+  /**
+   * @brief Request feedback from the motor
+   *
+   * @param p_command - the request to command the motor to respond with
+   * @return status - success or failure
+   * @throws std::errc::timed_out - if a response is not returned within the max
+   * response time set at creation.
+   */
+  [[nodiscard]] status feedback_request(read p_command);
+
+  /**
+   * @brief Rotate motor shaft at the designated speed
+   *
+   * @param p_speed - speed in rpm to move the motor shaft at. Positive values
+   * rotate the motor shaft clockwise, negative values rotate the motor shaft
+   * counter-clockwise assuming you are looking directly at the motor shaft.
+   * @return status - success or failure
+   * @throws std::errc::timed_out - if a response is not returned within the max
+   * response time set at creation.
+   */
+  [[nodiscard]] status velocity_control(rpm p_speed);
+
+  /**
+   * @brief Move motor shaft to a specific angle
+   *
+   * @param p_angle - angle position in degrees to move to
+   * @param speed - maximum speed in rpm's
+   * @return status - success or failure
+   * @throws std::errc::timed_out - if a response is not returned within the max
+   * response time set at creation.
+   */
+  [[nodiscard]] status position_control(degrees p_angle, rpm speed);
+
+  /**
+   * @brief Send system control commands to the device
+   *
+   * @param p_system_command - system control command to send to the device
+   * @return status - success or failure status
+   * @throws std::errc::timed_out - if a response is not returned within the max
+   * response time set at creation.
+   */
+  [[nodiscard]] status system_control(system p_system_command);
 
   const feedback_t& feedback() const
   {
