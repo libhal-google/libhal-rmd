@@ -51,8 +51,8 @@ hal::status application(hardware_map& p_map)
                      drc.feedback().raw_volts,
                      drc.feedback().encoder,
                      drc.feedback().raw_motor_temperature,
-                     drc.feedback().over_voltage_protection_tripped,
-                     drc.feedback().over_temperature_protection_tripped,
+                     drc.feedback().over_voltage_protection_tripped(),
+                     drc.feedback().over_temperature_protection_tripped(),
                      drc.feedback().angle(),
                      drc.feedback().current(),
                      drc.feedback().speed(),
@@ -63,13 +63,13 @@ hal::status application(hardware_map& p_map)
   HAL_CHECK(hal::delay(clock, 500ms));
 
   while (true) {
-    HAL_CHECK(drc.velocity_control(5.0_rpm));
-    print_feedback();
+    HAL_CHECK(drc.velocity_control(10.0_rpm));
     (void)hal::delay(clock, 2000ms);
+    print_feedback();
 
-    HAL_CHECK(drc.velocity_control(-5.0_rpm));
-    print_feedback();
+    HAL_CHECK(drc.velocity_control(-10.0_rpm));
     (void)hal::delay(clock, 2000ms);
+    print_feedback();
   }
 
   return hal::success();
