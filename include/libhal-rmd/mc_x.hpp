@@ -6,6 +6,7 @@
 #include <libhal-util/can.hpp>
 #include <libhal-util/enum.hpp>
 #include <libhal-util/map.hpp>
+#include <libhal-util/steady_clock.hpp>
 #include <libhal/can.hpp>
 #include <libhal/steady_clock.hpp>
 #include <libhal/units.hpp>
@@ -24,7 +25,11 @@ public:
   static constexpr float dps_per_lsb_speed = 0.01f;
   static constexpr float dps_per_lsb_angle = 1.0f;
 
-  /// 🟡 Commands that can be issued to a RMD-X motor
+  /// Messages returned from these motor drivers are the same as motor ID plus
+  /// this offset.
+  static constexpr std::uint32_t response_id_offset = 0x100;
+
+  /// Commands that can be issued to a RMD-X motor
   enum class read : hal::byte
   {
     multi_turns_angle = 0x92,
@@ -163,7 +168,19 @@ public:
     }
   };
 
-  static result<mc_x> create(
+  /**
+   * @brief Create a new mc_x device driver
+   *
+   * @param p_router - can router to use
+   * @param p_clock - clocked used to determine timeouts
+   * @param p_gear_ratio - gear ratio of the motor
+   * @param device_id - The CAN ID of the motor
+   * @param p_max_response_time - maximum amount of time to wait for a response
+   * from the motor.
+   * @return result<mc_x> - the mc_x driver or an error (no errors are currently
+   * generated from this function)
+   */
+  [[nodiscard]] static result<mc_x> create(
     hal::can_router& p_router,
     hal::steady_clock& p_clock,
     float p_gear_ratio,
@@ -204,16 +221,72 @@ public:
     return *this;
   }
 
+  /**
+   * @brief Get feedback about the motor
+   *
+   * This object contains cached data from each response returned from the
+   * motor. It is updated when any of the control or feedback APIs are called.
+   * This object will not update without one of those APIs being called.
+   *
+   * @return const feedback_t& - information about the motor
+   * @throws std::errc::timed_out - if a response is not returned within the max
+   * response time set at creation.
+   */
   const feedback_t& feedback() const
   {
     return m_feedback;
   }
 
-  status feedback_request(read p_command);
-  status velocity_control(rpm p_speed);
-  status position_control(degrees p_angle, rpm speed);
-  status system_control(system p_system_command);
+  /**
+   * @brief Request feedback from the motor
+   *
+   * @param p_command - the request to command the motor to respond with
+   * @return status - success or failure
+   * @throws std::errc::timed_out - if a response is not returned within the max
+   * response time set at creation.
+   */
+  [[nodiscard]] status feedback_request(read p_command);
 
+  /**
+   * @brief Rotate motor shaft at the designated speed
+   *
+   * @param p_speed - speed in rpm to move the motor shaft at. Positive values
+   * rotate the motor shaft clockwise, negative values rotate the motor shaft
+   * counter-clockwise assuming you are looking directly at the motor shaft.
+   * @return status - success or failure
+   * @throws std::errc::timed_out - if a response is not returned within the max
+   * response time set at creation.
+   */
+  [[nodiscard]] status velocity_control(rpm p_speed);
+
+  /**
+   * @brief Move motor shaft to a specific angle
+   *
+   * @param p_angle - angle position in degrees to move to
+   * @param speed - speed in rpm's
+   * @return status - success or failure
+   * @throws std::errc::timed_out - if a response is not returned within the max
+   * response time set at creation.
+   */
+  [[nodiscard]] status position_control(degrees p_angle, rpm speed);
+
+  /**
+   * @brief Send system control commands to the device
+   *
+   * @param p_system_command - system control command to send to the device
+   * @return status - success or failure status
+   * @throws std::errc::timed_out - if a response is not returned within the max
+   * response time set at creation.
+   */
+  [[nodiscard]] status system_control(system p_system_command);
+
+  /**
+   * @brief Handle messages from the CANBUS with this devices ID
+   *
+   * Meant mostly for testing purposes.
+   *
+   * @param p_message - message received from the bus
+   */
   void operator()(const can::message_t& p_message);
 
 private:
@@ -225,13 +298,37 @@ private:
     : m_feedback{}
     , m_clock(&p_clock)
     , m_router(&p_router)
-    , m_route_item(p_router.add_message_callback(p_device_id))
+    , m_route_item(
+        p_router.add_message_callback(p_device_id + response_id_offset))
     , m_gear_ratio(p_gear_ratio)
     , m_device_id(p_device_id)
     , m_max_response_time(p_max_response_time)
   {
     m_route_item.get().handler = std::ref(*this);
   }
+
+  struct response_waiter
+  {
+    using message_t = decltype(feedback_t::message_number);
+    response_waiter(mc_x* p_this)
+      : m_this(p_this)
+    {
+      m_original_message_number = m_this->m_feedback.message_number;
+    }
+    hal::status wait()
+    {
+      auto timeout = HAL_CHECK(
+        hal::create_timeout(*m_this->m_clock, m_this->m_max_response_time));
+      while (true) {
+        if (m_original_message_number != m_this->m_feedback.message_number) {
+          return hal::success();
+        }
+        HAL_CHECK(timeout());
+      }
+    }
+    message_t m_original_message_number{ 0 };
+    mc_x* m_this;
+  };
 
   can::message_t message(std::array<hal::byte, 8> p_payload) const
   {
@@ -269,12 +366,14 @@ inline result<std::int32_t> mc_x::rpm_to_mc_x_speed(rpm p_rpm,
                                                     float p_dps_per_lsb)
 {
   static constexpr float dps_per_rpm = (1.0f / 1.0_deg_per_sec);
-  const float dps_float = (p_rpm * m_gear_ratio * dps_per_rpm) / p_dps_per_lsb;
+  const float dps_float = (p_rpm * dps_per_rpm) / p_dps_per_lsb;
   return bounds_check<std::int32_t>(dps_float);
 }
 
 inline status mc_x::velocity_control(rpm p_rpm)
 {
+  response_waiter response(this);
+
   const auto speed_data =
     HAL_CHECK(rpm_to_mc_x_speed(p_rpm, dps_per_lsb_speed));
 
@@ -289,16 +388,18 @@ inline status mc_x::velocity_control(rpm p_rpm)
     static_cast<hal::byte>((speed_data >> 24) & 0xFF),
   })));
 
-  return hal::success();
+  return response.wait();
 }
 
 inline status mc_x::position_control(degrees p_angle, rpm p_rpm)
 {
+  response_waiter response(this);
+
   static constexpr float deg_per_lsb = 0.01f;
-  const auto angle = (p_angle * m_gear_ratio) / deg_per_lsb;
+  const auto angle = p_angle / deg_per_lsb;
   const auto angle_data = HAL_CHECK(bounds_check<std::int32_t>(angle));
-  const auto speed_data =
-    HAL_CHECK(rpm_to_mc_x_speed(std::abs(p_rpm), dps_per_lsb_angle));
+  const auto speed_data = HAL_CHECK(
+    rpm_to_mc_x_speed(std::abs(p_rpm * m_gear_ratio), dps_per_lsb_angle));
 
   HAL_CHECK(m_router->bus().send(message({
     hal::value(actuate::position),
@@ -311,11 +412,13 @@ inline status mc_x::position_control(degrees p_angle, rpm p_rpm)
     static_cast<hal::byte>((angle_data >> 24) & 0xFF),
   })));
 
-  return hal::success();
+  return response.wait();
 }
 
 inline status mc_x::feedback_request(read p_command)
 {
+  response_waiter response(this);
+
   HAL_CHECK(m_router->bus().send(message({
     hal::value(p_command),
     0x00,
@@ -327,11 +430,13 @@ inline status mc_x::feedback_request(read p_command)
     0x00,
   })));
 
-  return hal::success();
+  return response.wait();
 }
 
 inline status mc_x::system_control(system p_system_command)
 {
+  response_waiter response(this);
+
   HAL_CHECK(m_router->bus().send(message({
     hal::value(p_system_command),
     0x00,
@@ -343,14 +448,15 @@ inline status mc_x::system_control(system p_system_command)
     0x00,
   })));
 
-  return hal::success();
+  return response.wait();
 }
 
 inline void mc_x::operator()(const can::message_t& p_message)
 {
   m_feedback.message_number++;
 
-  if (p_message.length != 8 || p_message.id != m_device_id) {
+  if (p_message.length != 8 ||
+      p_message.id != m_device_id + response_id_offset) {
     return;
   }
 
