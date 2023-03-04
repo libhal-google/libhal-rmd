@@ -19,7 +19,7 @@ hal::status application(hardware_map& p_map)
   hal::print(console, "RMD DRC Smart Servo Application Starting...\n\n");
 
   auto router = HAL_CHECK(hal::can_router::create(can));
-  auto drc = HAL_CHECK(hal::rmd::drc::create(router, clock, 6.0f, 0x142));
+  auto drc = HAL_CHECK(hal::rmd::drc::create(router, clock, 6.0f, 0x141));
 
   auto print_feedback = [&drc, &console]() {
     (void)drc.feedback_request(hal::rmd::drc::read::status_2);
