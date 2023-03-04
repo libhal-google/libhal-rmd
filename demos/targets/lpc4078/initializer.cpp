@@ -17,7 +17,7 @@ hal::result<hardware_map> initialize_target()
   hal::cortex_m::system_control::initialize_floating_point_unit();
 
   // Set the MCU to the maximum clock speed
-  HAL_CHECK(hal::lpc40xx::clock::maximum(12.0_MHz));
+  HAL_CHECK(hal::lpc40xx::clock::maximum(10.0_MHz));
 
   auto& clock = hal::lpc40xx::clock::get();
   auto cpu_frequency = clock.get_frequency(hal::lpc40xx::peripheral::cpu);

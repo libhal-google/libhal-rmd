@@ -55,7 +55,7 @@ target_link_options(${PROJECT_NAME} PRIVATE
   -ftest-coverage
   -fsanitize=address)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  boost::ut
+  Boost::ut
   libhal::rmd
   libhal::mock)
 
