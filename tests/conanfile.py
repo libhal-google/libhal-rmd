@@ -6,11 +6,11 @@ import os
 
 class TestPackageConan(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
-    generators = "CMakeToolchain", "CMakeDeps", "VirtualRunEnv"
+    generators = "CMakeToolchain", "CMakeDeps", "VirtualBuildEnv"
 
     def requirements(self):
         self.requires(self.tested_reference_str)
-        self.requires("libhal-mock/[^1.0.0]")
+        self.test_requires("libhal-mock/[^1.0.0]")
         self.test_requires("boost-ext-ut/1.1.9")
 
     def layout(self):
