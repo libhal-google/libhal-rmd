@@ -1,6 +1,6 @@
 from conan import ConanFile
+from conan.tools.cmake import CMake, cmake_layout
 from conan.tools.files import copy
-from conan.tools.layout import basic_layout
 from conan.tools.build import check_min_cppstd
 from conan.errors import ConanInvalidConfiguration
 import os
@@ -18,12 +18,10 @@ class LibhalRmdConan(ConanFile):
     description = (
         "A collection of drivers for the RMD series servos and actuators")
     topics = ("servo", "smart servo", "PID")
-    settings = "compiler"
-    exports_sources = "include/*"
+    settings = "compiler", "build_type", "os", "arch"
+    exports_sources = "include/*", "tests/*", "LICENSE"
+    generators = "CMakeToolchain", "CMakeDeps"
     no_copy_source = True
-
-    def package_id(self):
-        self.info.clear()
 
     @property
     def _min_cppstd(self):
@@ -36,10 +34,6 @@ class LibhalRmdConan(ConanFile):
             "clang": "14",
             "apple-clang": "14.0.0"
         }
-
-    def requirements(self):
-        self.requires("libhal/[^1.0.0]")
-        self.requires("libhal-util/[^1.0.0]")
 
     def validate(self):
         if self.settings.get_safe("compiler.cppstd"):
@@ -59,12 +53,29 @@ class LibhalRmdConan(ConanFile):
             raise ConanInvalidConfiguration(
                 f"{self.name} {self.version} requires C++{self._min_cppstd}, which your compiler ({compiler}-{version}) does not support")
 
+    def requirements(self):
+        self.requires("libhal/[^1.0.0]")
+        self.requires("libhal-util/[^1.0.0]")
+        self.test_requires("libhal-mock/[^1.0.0]")
+        self.test_requires("boost-ext-ut/1.1.9")
+
     def layout(self):
-        basic_layout(self)
+        cmake_layout(self)
+
+    def build(self):
+        if not self.conf.get("tools.build:skip_test", default=False):
+            cmake = CMake(self)
+            if self.settings.os == "Windows":
+                cmake.configure(build_script_folder="tests")
+            else:
+                cmake.configure(build_script_folder="tests",
+                                variables={"ENABLE_ASAN": True})
+            cmake.build()
+            self.run(os.path.join(self.cpp.build.bindir, "unit_test"))
 
     def package(self):
         copy(self, "LICENSE", dst=os.path.join(
-            self.package_folder, "licenses"),  src=self.source_folder)
+            self.package_folder, "licenses"), src=self.source_folder)
         copy(self, "*.h", dst=os.path.join(self.package_folder, "include"),
              src=os.path.join(self.source_folder, "include"))
         copy(self, "*.hpp", dst=os.path.join(self.package_folder,
@@ -76,3 +87,6 @@ class LibhalRmdConan(ConanFile):
         self.cpp_info.libdirs = []
         self.cpp_info.resdirs = []
         self.cpp_info.set_property("cmake_target_name", "libhal::rmd")
+
+    def package_id(self):
+        self.info.clear()
