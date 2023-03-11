@@ -9,6 +9,7 @@
 #include <libhal-util/map.hpp>
 #include <libhal-util/steady_clock.hpp>
 #include <libhal/can.hpp>
+#include <libhal/servo.hpp>
 #include <libhal/steady_clock.hpp>
 #include <libhal/units.hpp>
 
@@ -327,7 +328,11 @@ private:
       return static_cast<T>(p_float);
     }
 
-    return new_error(std::errc::result_out_of_range);
+    return new_error(std::errc::invalid_argument,
+                     hal::servo::range_error{
+                       .min = min,
+                       .max = max,
+                     });
   }
 
   struct response_waiter

@@ -225,7 +225,7 @@ void drc_test()
         return driver.velocity_control(1000000.0_rpm);
       },
       // Verify
-      [](match<std::errc, std::errc::result_out_of_range>) { expect(true); },
+      [](match<std::errc, std::errc::invalid_argument>) { expect(true); },
       []() { expect(false); });
 
     expect(that % 0 == mock_can.spy_send.call_history().size());
@@ -310,7 +310,7 @@ void drc_test()
         return driver.position_control(1000000.0_deg, 10.0_rpm);
       },
       // Verify
-      [](match<std::errc, std::errc::result_out_of_range>) { expect(true); },
+      [](match<std::errc, std::errc::invalid_argument>) { expect(true); },
       []() { expect(false); });
 
     attempt_all(
@@ -319,7 +319,7 @@ void drc_test()
         return driver.position_control(0.0_deg, 1000000.0_rpm);
       },
       // Verify
-      [](match<std::errc, std::errc::result_out_of_range>) { expect(true); },
+      [](match<std::errc, std::errc::invalid_argument>) { expect(true); },
       []() { expect(false); });
   };
 
