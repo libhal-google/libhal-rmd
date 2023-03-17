@@ -145,7 +145,7 @@ private:
 
   result<hal::rotation_sensor::read_t> driver_read() override
   {
-    HAL_CHECK(m_drc->feedback_request(hal::rmd::drc::read::status_2));
+    HAL_CHECK(m_drc->feedback_request(hal::rmd::drc::read::multi_turns_angle));
 
     return hal::rotation_sensor::read_t{
       .angle = m_drc->feedback().angle(),
