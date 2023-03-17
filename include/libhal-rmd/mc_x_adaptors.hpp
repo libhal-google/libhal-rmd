@@ -109,7 +109,8 @@ private:
 
   result<hal::temperature_sensor::read_t> driver_read() override
   {
-    HAL_CHECK(m_mc_x->feedback_request(hal::rmd::mc_x::read::status_2));
+    HAL_CHECK(
+      m_mc_x->feedback_request(hal::rmd::mc_x::read::multi_turns_angle));
 
     return hal::temperature_sensor::read_t{
       .temperature = m_mc_x->feedback().temperature(),
