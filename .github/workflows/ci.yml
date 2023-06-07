@@ -21,12 +21,15 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 12 * * 0'
+    - cron: "0 12 * * 0"
 
 jobs:
   ci:
-    uses: libhal/ci/.github/workflows/library.yml@main
+    uses: libhal/ci/.github/workflows/library.yml@2.2.0
     with:
       library: libhal-rmd
       coverage: true
+    secrets: inherit
+  devices:
+    uses: libhal/ci/.github/workflows/device_deploy.yml@2.2.0
     secrets: inherit
