@@ -23,26 +23,23 @@ project(demos VERSION 0.0.1 LANGUAGES CXX)
 find_package(libhal-lpc40 REQUIRED CONFIG)
 find_package(libhal-rmd REQUIRED CONFIG)
 
-set(DEMOS drc mc_x)
-set(TARGETS lpc4078 lpc4074)
+set(processor_library $ENV{LIBHAL_PROCESSOR_LIBRARY})
+set(platform $ENV{LIBHAL_PLATFORM})
 
-foreach(target IN LISTS TARGETS)
-    foreach(demo IN LISTS DEMOS)
-        set(current_project ${target}_${demo}.elf)
-        message(STATUS "Generating Demo for \"${current_project}\"")
-        add_executable(${current_project}
-            main.cpp
-            newlib.cpp
-            targets/${target}/initializer.cpp
-            applications/${demo}.cpp)
-        target_include_directories(${current_project} PUBLIC
-            ./
-            targets/${target})
-        target_compile_features(${current_project} PRIVATE cxx_std_20)
-        target_link_options(${current_project} PRIVATE -u _printf_float)
-        target_link_libraries(${current_project} PRIVATE
-            libhal::${target}
-            libhal::rmd)
-        arm_post_build(${current_project})
-    endforeach()
+set(DEMOS drc mc_x)
+
+foreach(demo IN LISTS DEMOS)
+    set(current_project ${demo}.elf)
+    message(STATUS "Generating Demo for \"${current_project}\"")
+    add_executable(${current_project}
+        main.cpp
+        platforms/${platform}.cpp
+        applications/${demo}.cpp)
+    target_include_directories(${current_project} PUBLIC .)
+    target_compile_features(${current_project} PRIVATE cxx_std_20)
+    target_link_options(${current_project} PRIVATE -u _printf_float)
+    target_link_libraries(${current_project} PRIVATE
+        libhal::${processor_library}
+        libhal::rmd
+        libhal::util)
 endforeach()
