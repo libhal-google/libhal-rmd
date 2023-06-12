@@ -35,13 +35,15 @@ jobs:
     secrets: inherit
   build_lpc4074:
     uses: libhal/ci/.github/workflows/demo_builder.yml@3.0.0
-    profile: lpc4074
-    processor_profile: https://github.com/libhal/libhal-armcortex.git
-    platform_profile: https://github.com/libhal/libhal-lpc40.git
+    with:
+      profile: lpc4074
+      processor_profile: https://github.com/libhal/libhal-armcortex.git
+      platform_profile: https://github.com/libhal/libhal-lpc40.git
     secrets: inherit
   build_lpc4078:
     uses: libhal/ci/.github/workflows/demo_builder.yml@3.0.0
-    profile: lpc4078
-    processor_profile: https://github.com/libhal/libhal-armcortex.git
-    platform_profile: https://github.com/libhal/libhal-lpc40.git
+    with:
+      profile: lpc4078
+      processor_profile: https://github.com/libhal/libhal-armcortex.git
+      platform_profile: https://github.com/libhal/libhal-lpc40.git
     secrets: inherit
