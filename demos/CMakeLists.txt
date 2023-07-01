@@ -23,17 +23,17 @@ project(demos VERSION 0.0.1 LANGUAGES CXX)
 find_package(libhal-lpc40 REQUIRED CONFIG)
 find_package(libhal-rmd REQUIRED CONFIG)
 
-set(processor_library $ENV{LIBHAL_PROCESSOR_LIBRARY})
+set(processor_library $ENV{LIBHAL_PLATFORM_LIBRARY})
 set(platform $ENV{LIBHAL_PLATFORM})
 
 set(DEMOS drc mc_x)
+
+add_library(startup_code main.cpp platforms/${platform}.cpp)
 
 foreach(demo IN LISTS DEMOS)
     set(current_project ${demo}.elf)
     message(STATUS "Generating Demo for \"${current_project}\"")
     add_executable(${current_project}
-        main.cpp
-        platforms/${platform}.cpp
         applications/${demo}.cpp)
     target_include_directories(${current_project} PUBLIC .)
     target_compile_features(${current_project} PRIVATE cxx_std_20)
@@ -41,5 +41,6 @@ foreach(demo IN LISTS DEMOS)
     target_link_libraries(${current_project} PRIVATE
         libhal::${processor_library}
         libhal::rmd
-        libhal::util)
+        libhal::util
+        startup_code)
 endforeach()
