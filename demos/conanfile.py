@@ -16,15 +16,15 @@ from conan import ConanFile
 from conan.tools.cmake import CMake, cmake_layout
 
 
-class RmdDemos(ConanFile):
-    settings = "compiler", "build_type"
+class demos(ConanFile):
+    settings = "compiler", "build_type", "os", "arch"
     generators = "CMakeToolchain", "CMakeDeps", "VirtualBuildEnv"
     options = {"platform": ["ANY"]}
     default_options = {"platform": "unspecified"}
 
     def requirements(self):
-        self.requires("libhal-lpc40/[~2.0.0-alpha.1, include_prerelease=True]")
-        self.requires("libhal-rmd/[~2.0.0-alpha.1, include_prerelease=True]")
+        self.requires("libhal-lpc40/2.0.0")
+        self.requires("libhal-rmd/2.0.0")
 
     def layout(self):
         platform_directory = "build/" + str(self.options.platform)
