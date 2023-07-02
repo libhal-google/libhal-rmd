@@ -41,11 +41,11 @@ public:
 class do_nothing_steady_clock : public hal::steady_clock
 {
 public:
-  hal::result<frequency_t> driver_frequency() override
+  frequency_t driver_frequency() override
   {
     return frequency_t{ .operating_frequency = 10'000'000.0f };
   }
-  hal::result<uptime_t> driver_uptime() override
+  uptime_t driver_uptime() override
   {
     return uptime_t{ .ticks = m_counter++ };
   }
