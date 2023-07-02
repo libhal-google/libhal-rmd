@@ -74,39 +74,39 @@ hal::status application(hardware_map& p_map)
                      drc.feedback().temperature());
   };
 
-  HAL_CHECK(hal::delay(clock, 500ms));
+  hal::delay(clock, 500ms);
 
   while (true) {
     HAL_CHECK(drc.velocity_control(10.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    hal::delay(clock, 5000ms);
     print_feedback();
 
     HAL_CHECK(drc.velocity_control(-10.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    hal::delay(clock, 5000ms);
     print_feedback();
 
     HAL_CHECK(drc.position_control(0.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    hal::delay(clock, 5000ms);
     print_feedback();
 
     HAL_CHECK(drc.position_control(-45.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    hal::delay(clock, 5000ms);
     print_feedback();
 
     HAL_CHECK(drc.position_control(90.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    hal::delay(clock, 5000ms);
     print_feedback();
 
     HAL_CHECK(drc.position_control(180.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    hal::delay(clock, 5000ms);
     print_feedback();
 
     HAL_CHECK(drc.position_control(-360.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    hal::delay(clock, 5000ms);
     print_feedback();
 
     HAL_CHECK(drc.position_control(0.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    hal::delay(clock, 5000ms);
     print_feedback();
   }
 

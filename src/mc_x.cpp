@@ -35,8 +35,8 @@ struct response_waiter
   }
   hal::status wait()
   {
-    auto timeout = HAL_CHECK(
-      hal::create_timeout(*m_this->m_clock, m_this->m_max_response_time));
+    auto timeout =
+      hal::create_timeout(*m_this->m_clock, m_this->m_max_response_time);
     while (true) {
       if (m_original_message_number != m_this->feedback().message_number) {
         return hal::success();
