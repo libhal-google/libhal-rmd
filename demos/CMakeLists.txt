@@ -19,8 +19,6 @@ project(demos VERSION 0.0.1 LANGUAGES CXX)
 set(platform_library $ENV{LIBHAL_PLATFORM_LIBRARY})
 set(platform $ENV{LIBHAL_PLATFORM})
 
-message(WARNING "${platform_library}")
-
 if("${platform_library}" STREQUAL "")
     message(FATAL_ERROR
         "Build environment variable LIBHAL_PLATFORM_LIBRARY is required for " "this project.")

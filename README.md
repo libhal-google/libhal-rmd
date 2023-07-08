@@ -1,54 +1,74 @@
 # libhal-rmd
 
 [![✅ Checks](https://github.com/libhal/libhal-rmd/actions/workflows/ci.yml/badge.svg)](https://github.com/libhal/libhal-rmd/actions/workflows/ci.yml)
-[![coverage](https://libhal.github.io/libhal-rmd/coverage/coverage.svg)](https://libhal.github.io/libhal-rmd/coverage/)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b084e6d5962d49a9afcb275d62cd6586)](https://www.codacy.com/gh/libhal/libhal-rmd/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=libhal/libhal-rmd&amp;utm_campaign=Badge_Grade)
+[![Coverage](https://libhal.github.io/libhal-rmd/coverage/coverage.svg)](https://libhal.github.io/libhal-rmd/coverage/)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b084e6d5962d49a9afcb275d62cd6586)](https://www.codacy.com/gh/libhal/libhal-rmd/dashboard?utm_source=github.com&utm_medium=referral&utm_content=libhal/libhal-rmd&utm_campaign=Badge_Grade)
 [![GitHub stars](https://img.shields.io/github/stars/libhal/libhal-rmd.svg)](https://github.com/libhal/libhal-rmd/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/libhal/libhal-rmd.svg)](https://github.com/libhal/libhal-rmd/network)
 [![GitHub issues](https://img.shields.io/github/issues/libhal/libhal-rmd.svg)](https://github.com/libhal/libhal-rmd/issues)
 [![Latest Version](https://libhal.github.io/libhal-rmd/latest_version.svg)](https://github.com/libhal/libhal-rmd/blob/main/conanfile.py)
-[![ConanCenter Version](https://repology.org/badge/version-for-repo/conancenter/libhal-rmd.svg)](https://conan.io/center/libhal-rmd)
 
+libhal device library for the series of the RMD smart motors from
+[MyActuator](https://www.myactuator.com/).
 
-# [📚 Software APIs](https://libhal.github.io/libhal-rmd/api)
+## 📚 Software APIs & Usage
 
-# 📥 Install
+To learn about the available drivers and APIs see the
+[Doxygen](https://libhal.github.io/libhal-rmd/api)
+documentation page or look at the
+[`include/libhal-rmd`](https://github.com/libhal/libhal-rmd/tree/main/include/libhal-rmd)
+directory.
 
-## [Install libhal Prerequisites](https://libhal.github.io/prerequisites/)
+To see how each driver is used see the
+[`demos/`](https://github.com/libhal/libhal-rmd/tree/main/demos) directory.
 
-## Install using conan via from Conan Center Index
+## 🧰 Setup
 
-For future use. `libhal-rmd` is not currently on the Conan Center Index.
+Following the
+[🚀 Getting Started](https://libhal.github.io/2.1/getting_started/)
+instructions.
 
-```bash
-conan install libhal-rmd
-```
+## 📡 Installing Profiles
 
-## Install using conan via libhal-trunk
-
-Trunk represents the latest code on github.
-
-In order to get the latest code remote version of this repo as well as its
-dependencies, enter this command to add the `libhal-trunk` remote server to your
-list.
-
-This command will insert `libhal-trunk` as the first server to check before
-checking the conan center index.
-The second command will enable revision mode which is required to use
-`libhal-trunk`.
+The `libhal-lpc40` profiles used for demos. To install them use the following
+commands.
 
 ```bash
-conan remote add libhal-trunk https://libhal.jfrog.io/artifactory/api/conan/trunk-conan --insert
-conan config set general.revisions_enabled=True
+conan config install -sf conan/profiles/ -tf profiles https://github.com/libhal/libhal-armcortex.git
+conan config install -sf conan/profiles/ -tf profiles https://github.com/libhal/libhal-lpc40.git
 ```
 
-Now when you run
+## 🏗️ Building Demos
 
-```
-conan install libhal-rmd
+To build demos, start at the root of the repo and execute the following command:
+
+```bash
+conan build demos -pr lpc4078 -s build_type=Debug
 ```
 
-The library will be pulled from the `libhal-trunk`.
+or for the `lpc4074`
+
+```bash
+conan build demos -pr lpc4074 -s build_type=Debug
+```
+
+## 🔌 Device Wiring & Hookup guide (CAN BUS)
+
+1. Locate the CANTD (CAN Transmit Data) and CANRD (Can Receive Data) pins on
+   your microcontroller port.
+2. Connect CANTD and CANRD lines to a CAN transceiver.
+3. Connect CAN transceiver's CANL and CANH lines and connect them to an motor's
+   CANL and CANH lines.
+4. Supply adequate power to the CAN transceiver and the smart motor.
+
+## 📦 Adding `libhal-rmd` to your project
+
+Add the following to your `requirements()` method:
+
+```python
+    def requirements(self):
+        self.requires("libhal-rmd/[^2.0.0]")
+```
 
 ## Contributing
 
@@ -63,4 +83,3 @@ Apache 2.0; see [`LICENSE`](LICENSE) for details.
 This project is not an official Google project. It is not supported by
 Google and Google specifically disclaims all warranties as to its quality,
 merchantability, or fitness for a particular purpose.
-
