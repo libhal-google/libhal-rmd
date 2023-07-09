@@ -89,35 +89,56 @@ hal::status application(hardware_map& p_map)
 
   while (true) {
     HAL_CHECK(mc_x.velocity_control(50.0_rpm));
-    (void)hal::delay(clock, 10000ms);
+    hal::delay(clock, 5000ms);
+    print_feedback();
+
+    HAL_CHECK(mc_x.velocity_control(0.0_rpm));
+    hal::delay(clock, 2000ms);
     print_feedback();
 
     HAL_CHECK(mc_x.velocity_control(-50.0_rpm));
-    (void)hal::delay(clock, 10000ms);
+    hal::delay(clock, 5000ms);
     print_feedback();
 
-    HAL_CHECK(mc_x.position_control(0.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    HAL_CHECK(mc_x.velocity_control(0.0_rpm));
+    hal::delay(clock, 2000ms);
     print_feedback();
 
-    HAL_CHECK(mc_x.position_control(-45.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    // Position control above 40 RPM seems to cause issues with position control
+    HAL_CHECK(mc_x.position_control(0.0_deg, 30.0_rpm));
+    hal::delay(clock, 1s);
     print_feedback();
 
-    HAL_CHECK(mc_x.position_control(90.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    HAL_CHECK(mc_x.position_control(90.0_deg, 30.0_rpm));
+    hal::delay(clock, 2s);
     print_feedback();
 
-    HAL_CHECK(mc_x.position_control(180.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    HAL_CHECK(mc_x.position_control(180.0_deg, 30.0_rpm));
+    hal::delay(clock, 2s);
     print_feedback();
 
-    HAL_CHECK(mc_x.position_control(-360.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    HAL_CHECK(mc_x.position_control(90.0_deg, 30.0_rpm));
+    hal::delay(clock, 2s);
     print_feedback();
 
-    HAL_CHECK(mc_x.position_control(0.0_deg, 50.0_rpm));
-    (void)hal::delay(clock, 5000ms);
+    HAL_CHECK(mc_x.position_control(0.0_deg, 30.0_rpm));
+    hal::delay(clock, 2s);
+    print_feedback();
+
+    HAL_CHECK(mc_x.position_control(-45.0_deg, 30.0_rpm));
+    hal::delay(clock, 2s);
+    print_feedback();
+
+    HAL_CHECK(mc_x.position_control(-90.0_deg, 30.0_rpm));
+    hal::delay(clock, 2s);
+    print_feedback();
+
+    HAL_CHECK(mc_x.position_control(-45.0_deg, 30.0_rpm));
+    hal::delay(clock, 2s);
+    print_feedback();
+
+    HAL_CHECK(mc_x.position_control(0.0_deg, 30.0_rpm));
+    hal::delay(clock, 2s);
     print_feedback();
   }
 

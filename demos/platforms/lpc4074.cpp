@@ -23,13 +23,19 @@
 
 #include "hardware_map.hpp"
 
-hal::result<hardware_map> initialize_target()
+hal::status initialize_processor()
 {
-  using namespace hal::literals;
   hal::cortex_m::initialize_data_section();
 
+  return hal::success();
+}
+
+hal::result<hardware_map> initialize_platform()
+{
+  using namespace hal::literals;
+
   // Set the MCU to the maximum clock speed
-  HAL_CHECK(hal::lpc40::clock::maximum(10.0_MHz));
+  HAL_CHECK(hal::lpc40::clock::maximum(12.0_MHz));
 
   auto& clock = hal::lpc40::clock::get();
   auto cpu_frequency = clock.get_frequency(hal::lpc40::peripheral::cpu);
