@@ -18,6 +18,8 @@ on:
   workflow_dispatch:
   pull_request:
   push:
+    tags:
+      - "*"
     branches:
       - main
   schedule:
@@ -25,25 +27,39 @@ on:
 
 jobs:
   ci:
-    uses: libhal/ci/.github/workflows/library.yml@3.0.2
+    uses: libhal/ci/.github/workflows/library.yml@4.0.0
     with:
       library: libhal-rmd
       coverage: true
     secrets: inherit
+
   deploy:
-    uses: libhal/ci/.github/workflows/deploy.yml@3.0.2
+    uses: libhal/ci/.github/workflows/deploy.yml@4.0.0
     secrets: inherit
+
   build_lpc4074:
-    uses: libhal/ci/.github/workflows/demo_builder.yml@3.0.2
+    uses: libhal/ci/.github/workflows/demo_builder.yml@4.0.0
     with:
       profile: lpc4074
       processor_profile: https://github.com/libhal/libhal-armcortex.git
       platform_profile: https://github.com/libhal/libhal-lpc40.git
     secrets: inherit
+
   build_lpc4078:
-    uses: libhal/ci/.github/workflows/demo_builder.yml@3.0.2
+    uses: libhal/ci/.github/workflows/demo_builder.yml@4.0.0
     with:
       profile: lpc4078
       processor_profile: https://github.com/libhal/libhal-armcortex.git
       platform_profile: https://github.com/libhal/libhal-lpc40.git
     secrets: inherit
+
+  release:
+    needs: [ci, deploy, build_lpc4074, build_lpc4078]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true

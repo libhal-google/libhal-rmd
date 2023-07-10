@@ -6,7 +6,6 @@
 [![GitHub stars](https://img.shields.io/github/stars/libhal/libhal-rmd.svg)](https://github.com/libhal/libhal-rmd/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/libhal/libhal-rmd.svg)](https://github.com/libhal/libhal-rmd/network)
 [![GitHub issues](https://img.shields.io/github/issues/libhal/libhal-rmd.svg)](https://github.com/libhal/libhal-rmd/issues)
-[![Latest Version](https://libhal.github.io/libhal-rmd/latest_version.svg)](https://github.com/libhal/libhal-rmd/blob/main/conanfile.py)
 
 libhal device library for the series of the RMD smart motors from
 [MyActuator](https://www.myactuator.com/).
