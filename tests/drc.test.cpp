@@ -496,5 +496,25 @@ void drc_test()
   };
 
   "drc::feedback().current() "_test = []() {};
+
+  "hal::make_<interface>()"_test = []() {
+    // Setup
+    rmd_responder mock_can;
+    mock::steady_clock mock_steady;
+    auto queue = create_queue();
+    mock_steady.set_uptimes(queue);
+    mock_steady.set_frequency(
+      steady_clock::frequency_t{ .operating_frequency = 1.0_MHz });
+    auto router = hal::can_router::create(mock_can).value();
+
+    hal::rmd::drc* drc = nullptr;
+
+    // Exercise
+    // Verify
+    [[maybe_unused]] auto motor = hal::make_motor(*drc, 100.0_rpm).value();
+    [[maybe_unused]] auto servo = hal::make_servo(*drc, 100.0_rpm).value();
+    [[maybe_unused]] auto temp = hal::make_temperature_sensor(*drc).value();
+    [[maybe_unused]] auto rotation = hal::make_rotation_sensor(*drc).value();
+  };
 };
 }  // namespace hal::rmd

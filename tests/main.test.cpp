@@ -14,9 +14,13 @@
 
 namespace hal::rmd {
 extern void drc_test();
+extern void drc_adaptors_test();
+extern void mc_x_test();
 }  // namespace hal::rmd
 
 int main()
 {
   hal::rmd::drc_test();
+  hal::rmd::drc_adaptors_test();
+  hal::rmd::mc_x_test();
 }

@@ -16,8 +16,6 @@
 
 #include <cstdint>
 
-#include "drc_constants.hpp"
-
 #include <libhal-util/bit.hpp>
 #include <libhal-util/can.hpp>
 #include <libhal-util/enum.hpp>
@@ -25,15 +23,10 @@
 #include <libhal-util/steady_clock.hpp>
 #include <libhal/servo.hpp>
 
-namespace hal::rmd {
+#include "common.hpp"
+#include "drc_constants.hpp"
 
-can::message_t message(hal::can::id_t p_device_id,
-                       std::array<hal::byte, 8> p_payload)
-{
-  can::message_t message{ .id = p_device_id, .length = 8 };
-  message.payload = p_payload;
-  return message;
-}
+namespace hal::rmd {
 
 template<std::integral T>
 result<T> bounds_check(std::floating_point auto p_float)

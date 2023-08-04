@@ -14,13 +14,9 @@
 
 #include <cmath>
 
-#include <libhal-rmd/drc_motor.hpp>
-#include <libhal-rmd/drc_rotation_sensor.hpp>
-#include <libhal-rmd/drc_servo.hpp>
-#include <libhal-rmd/drc_temperature_sensor.hpp>
+#include <libhal-rmd/drc.hpp>
 
 namespace hal::rmd {
-
 drc_servo::drc_servo(drc& p_drc, hal::rpm p_max_speed)
   : m_drc(&p_drc)
   , m_max_speed(p_max_speed)
@@ -32,18 +28,6 @@ result<hal::servo::position_t> drc_servo::driver_position(
 {
   HAL_CHECK(m_drc->position_control(p_position, m_max_speed));
   return hal::servo::position_t{};
-}
-
-drc_motor::drc_motor(drc& p_drc, hal::rpm p_max_speed)
-  : m_drc(&p_drc)
-  , m_max_speed(p_max_speed)
-{
-}
-
-result<hal::motor::power_t> drc_motor::driver_power(float p_power)
-{
-  HAL_CHECK(m_drc->velocity_control(m_max_speed * p_power));
-  return hal::motor::power_t{};
 }
 
 drc_temperature_sensor::drc_temperature_sensor(drc& p_drc)
@@ -73,13 +57,6 @@ result<hal::rotation_sensor::read_t> drc_rotation_sensor::driver_read()
     .angle = m_drc->feedback().angle(),
   };
 }
-}  // namespace hal::rmd
-
-namespace hal {
-result<rmd::drc_motor> make_motor(rmd::drc& p_drc, hal::rpm p_max_speed)
-{
-  return rmd::drc_motor(p_drc, std::abs(p_max_speed));
-}
 
 result<rmd::drc_rotation_sensor> make_rotation_sensor(rmd::drc& p_drc)
 {
@@ -95,4 +72,26 @@ result<rmd::drc_temperature_sensor> make_temperature_sensor(rmd::drc& p_drc)
 {
   return rmd::drc_temperature_sensor(p_drc);
 }
-}  // namespace hal
+
+drc_motor::drc_motor(rmd::drc& p_drc, hal::rpm p_max_speed)
+  : m_drc(&p_drc)
+  , m_max_speed(p_max_speed)
+{
+}
+
+result<hal::motor::power_t> drc_motor::driver_power(float p_power)
+{
+  HAL_CHECK(m_drc->velocity_control(m_max_speed * p_power));
+  return hal::motor::power_t{};
+}
+
+result<drc_motor> make_motor(rmd::drc& p_drc, hal::rpm p_max_speed)
+{
+  return drc_motor(p_drc, std::abs(p_max_speed));
+}
+
+result<int> make_servo(hal::rpm p_max_speed)
+{
+  return static_cast<int>(5 * p_max_speed);
+}
+}  // namespace hal::rmd

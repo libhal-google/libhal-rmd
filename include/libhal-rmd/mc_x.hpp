@@ -14,15 +14,15 @@
 
 #pragma once
 
-#include <atomic>
 #include <cstdint>
 
 #include <libhal-util/can.hpp>
-#include <libhal-util/enum.hpp>
-#include <libhal-util/map.hpp>
-#include <libhal-util/steady_clock.hpp>
 #include <libhal/can.hpp>
+#include <libhal/motor.hpp>
+#include <libhal/rotation_sensor.hpp>
+#include <libhal/servo.hpp>
 #include <libhal/steady_clock.hpp>
+#include <libhal/temperature_sensor.hpp>
 #include <libhal/units.hpp>
 
 namespace hal::rmd {
@@ -208,4 +208,107 @@ private:
   can::id_t m_device_id;
   hal::time_duration m_max_response_time;
 };
+
+/**
+ * @brief Control a mc_x motor driver like a hal::motor
+ *
+ */
+class mc_x_motor : public hal::motor
+{
+private:
+  mc_x_motor(mc_x& p_mc_x, hal::rpm p_max_speed);
+  result<hal::motor::power_t> driver_power(float p_power) override;
+  friend result<mc_x_motor> make_motor(mc_x& p_mc_x, hal::rpm p_max_speed);
+  mc_x* m_mc_x = nullptr;
+  hal::rpm m_max_speed;
+};
+
+/**
+ * @brief Create a hal::motor driver using the MC-X driver
+ *
+ * @param p_mc_x - reference to a MC-X driver. This object's lifetime must
+ * exceed the lifetime of the returned object.
+ * @param p_max_speed - maximum speed of the motor represented by +1.0 and -1.0
+ * @return result<mc_x_motor> - motor implementation using the MC-X driver
+ */
+result<mc_x_motor> make_motor(mc_x& p_mc_x, hal::rpm p_max_speed);
+
+/**
+ * @brief Reports the rotation of the DRC motor
+ *
+ */
+class mc_x_rotation : public hal::rotation_sensor
+{
+private:
+  mc_x_rotation(mc_x& p_mc_x);
+  result<hal::rotation_sensor::read_t> driver_read() override;
+  friend result<mc_x_rotation> make_rotation_sensor(mc_x& p_mc_x);
+  mc_x* m_mc_x = nullptr;
+};
+
+/**
+ * @brief Create a hal::rotation_sensor driver using the MC-X driver
+ *
+ * @param p_mc_x - reference to a MC-X driver. This object's lifetime must
+ * exceed the lifetime of the returned object.
+ * @return result<mc_x_rotation> - rotation sensor implementation based on the
+ * MC-X driver
+ */
+result<mc_x_rotation> make_rotation_sensor(mc_x& p_mc_x);
+
+/**
+ * @brief Control a mc_x motor driver like a hal::servo
+ *
+ */
+class mc_x_servo : public hal::servo
+{
+private:
+  mc_x_servo(mc_x& p_mc_x, hal::rpm p_max_speed);
+  result<hal::servo::position_t> driver_position(
+    hal::degrees p_position) override;
+  friend result<mc_x_servo> make_servo(mc_x& p_mc_x, hal::rpm p_max_speed);
+  mc_x* m_mc_x = nullptr;
+  hal::rpm m_max_speed;
+};
+
+/**
+ * @brief Create a hal::rotation_sensor driver using the MC-X driver
+ *
+ * @param p_mc_x - reference to a MC-X driver. This object's lifetime must
+ * exceed the lifetime of the returned object.
+ * @param p_max_speed - maximum speed of the motor when moving to an angle
+ * @return result<mc_x_rotation> - rotation sensor implementation based on the
+ * MC-X driver
+ */
+result<mc_x_servo> make_servo(mc_x& p_mc_x, hal::rpm p_max_speed);
+
+/**
+ * @brief Reports the temperature of the DRC motor
+ *
+ */
+class mc_x_temperature : public hal::temperature_sensor
+{
+private:
+  mc_x_temperature(mc_x& p_mc_x);
+  result<hal::temperature_sensor::read_t> driver_read() override;
+  friend result<mc_x_temperature> make_temperature_sensor(mc_x& p_mc_x);
+  mc_x* m_mc_x = nullptr;
+};
+
+/**
+ * @brief Create a hal::temperature_sensor driver using the MC-X driver
+ *
+ * @param p_mc_x - reference to a MC-X driver. This object's lifetime must
+ * exceed the lifetime of the returned object.
+ * @return result<mc_x_temperature> - temperature sensor implementation based on
+ * the MC-X driver
+ */
+result<mc_x_temperature> make_temperature_sensor(mc_x& p_mc_x);
 }  // namespace hal::rmd
+
+namespace hal {
+using rmd::make_motor;
+using rmd::make_rotation_sensor;
+using rmd::make_servo;
+using rmd::make_temperature_sensor;
+}  // namespace hal

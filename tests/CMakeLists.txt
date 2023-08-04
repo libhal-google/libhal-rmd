@@ -20,33 +20,25 @@ if(DEFINED ENABLE_ASAN)
   set(ASAN_FLAG "-fsanitize=address" CACHE INTERNAL "Use AddressSanatizer")
 endif(DEFINED ENABLE_ASAN)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # require at least gcc 11
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0)
-    message(FATAL_ERROR "GCC version must be at least 11!")
-  endif()
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # require at least clang 14
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
-    message(FATAL_ERROR "Clang version must be at least 14!")
-  endif()
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-  # require at least clang 14
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
-    message(FATAL_ERROR "Clang version must be at least 14!")
-  endif()
-else()
-  message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC, detected ${CMAKE_CXX_COMPILER_ID}.")
-endif()
-
 find_package(ut REQUIRED CONFIG)
 find_package(libhal REQUIRED CONFIG)
 find_package(libhal-util REQUIRED CONFIG)
 find_package(libhal-mock REQUIRED CONFIG)
 
 add_executable(${PROJECT_NAME}
+
+  # Source
+  ../src/drc_adaptors.cpp
+  ../src/mc_x_adaptors.cpp
+  ../src/drc.cpp
+  ../src/mc_x.cpp
+
+  # Tests
   drc.test.cpp
   mc_x.test.cpp
+  drc_motor.test.cpp
+
+  # Main
   main.test.cpp
 )
 
@@ -73,5 +65,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   boost-ext-ut::ut
   libhal::libhal
   libhal::util
-  libhal::mock
-  libhal-rmd)
+  libhal::mock)
