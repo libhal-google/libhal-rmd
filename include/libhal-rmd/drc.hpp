@@ -18,7 +18,11 @@
 
 #include <libhal-util/can.hpp>
 #include <libhal/can.hpp>
+#include <libhal/motor.hpp>
+#include <libhal/rotation_sensor.hpp>
+#include <libhal/servo.hpp>
 #include <libhal/steady_clock.hpp>
+#include <libhal/temperature_sensor.hpp>
 #include <libhal/units.hpp>
 
 namespace hal::rmd {
@@ -240,4 +244,107 @@ private:
   can::id_t m_device_id;
   hal::time_duration m_max_response_time;
 };
+
+/**
+ * @brief Rotation sensor adaptor for DRC motors
+ *
+ */
+class drc_rotation_sensor : public hal::rotation_sensor
+{
+private:
+  drc_rotation_sensor(drc& p_drc);
+  result<hal::rotation_sensor::read_t> driver_read() override;
+  friend result<drc_rotation_sensor> make_rotation_sensor(drc& p_drc);
+  drc* m_drc = nullptr;
+};
+
+/**
+ * @brief Create a hal::rotation_sensor driver using the drc driver
+ *
+ * @param p_drc - reference to a drc driver. This object's lifetime must
+ * exceed the lifetime of the returned object.
+ * @return drc_rotation_sensor - motor implementation based on the drc driver
+ */
+result<drc_rotation_sensor> make_rotation_sensor(drc& p_drc);
+
+/**
+ * @brief Temperature sensor adaptor for DRC motors
+ *
+ */
+class drc_temperature_sensor : public hal::temperature_sensor
+{
+private:
+  drc_temperature_sensor(drc& p_drc);
+  result<read_t> driver_read() override;
+  friend result<drc_temperature_sensor> make_temperature_sensor(drc& p_drc);
+  drc* m_drc = nullptr;
+};
+/**
+ * @brief Create a hal::temperature_sensor driver using the drc driver
+ *
+ * @param p_drc - reference to a drc driver. This object's lifetime must exceed
+ * the lifetime of the returned object.
+ * @return result<drc_temperature_sensor> - temperature sensor implementation
+ * based on the drc driver.
+ */
+result<drc_temperature_sensor> make_temperature_sensor(drc& p_drc);
+
+/**
+ * @brief Motor interface adaptor for DRC
+ *
+ */
+class drc_motor : public hal::motor
+{
+public:
+  friend result<drc_motor> make_motor(drc& p_drc, hal::rpm p_max_speed);
+
+private:
+  drc_motor(drc& p_drc, hal::rpm p_max_speed);
+  result<power_t> driver_power(float p_power) override;
+
+  drc* m_drc = nullptr;
+  hal::rpm m_max_speed;
+};
+
+/**
+ * @brief Create a hal::motor implementation from the drc driver
+ *
+ * @param p_drc - reference to a drc driver. This object's lifetime must NOT
+ * exceed the lifetime of the return drc motor.
+ * @param p_max_speed - maximum speed of the motor represented by +1.0 and
+ * -1.0
+ * @return drc_motor - motor implementation based on the drc driver
+ */
+result<drc_motor> make_motor(drc& p_drc, hal::rpm p_max_speed);
+
+/**
+ * @brief Servo interface adaptor for DRC
+ *
+ */
+class drc_servo : public hal::servo
+{
+private:
+  drc_servo(drc& p_drc, hal::rpm p_max_speed);
+  result<position_t> driver_position(hal::degrees p_position) override;
+  friend result<drc_servo> make_servo(drc& p_drc, hal::rpm p_max_speed);
+  drc* m_drc = nullptr;
+  hal::rpm m_max_speed;
+};
+
+/**
+ * @brief Create a hal::servo driver using the drc driver
+ *
+ * @param p_drc - reference to a drc driver. This object's lifetime must
+ * exceed the lifetime of the returned object.
+ * @param p_max_speed - maximum speed of the motor when moving to an angle
+ * @return result<drc_servo> - motor implementation based on the drc driver
+ */
+result<drc_servo> make_servo(drc& p_drc, hal::rpm p_max_speed);
 }  // namespace hal::rmd
+
+namespace hal {
+using rmd::make_motor;
+using rmd::make_rotation_sensor;
+using rmd::make_servo;
+using rmd::make_temperature_sensor;
+}  // namespace hal

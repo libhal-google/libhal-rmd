@@ -14,10 +14,7 @@
 
 #include <cmath>
 
-#include <libhal-rmd/mc_x_motor.hpp>
-#include <libhal-rmd/mc_x_rotation_sensor.hpp>
-#include <libhal-rmd/mc_x_servo.hpp>
-#include <libhal-rmd/mc_x_temperature_sensor.hpp>
+#include <libhal-rmd/mc_x.hpp>
 
 namespace hal::rmd {
 
@@ -73,23 +70,21 @@ result<hal::rotation_sensor::read_t> mc_x_rotation::driver_read()
     .angle = m_mc_x->feedback().angle(),
   };
 }
-}  // namespace hal::rmd
 
-namespace hal {
-result<rmd::mc_x_motor> make_motor(rmd::mc_x& p_mc_x, hal::rpm p_max_speed)
+result<mc_x_motor> make_motor(mc_x& p_mc_x, hal::rpm p_max_speed)
 {
-  return rmd::mc_x_motor(p_mc_x, p_max_speed);
+  return mc_x_motor(p_mc_x, p_max_speed);
 }
-result<rmd::mc_x_rotation> make_rotation_sensor(rmd::mc_x& p_mc_x)
+result<mc_x_rotation> make_rotation_sensor(mc_x& p_mc_x)
 {
-  return rmd::mc_x_rotation(p_mc_x);
+  return mc_x_rotation(p_mc_x);
 }
-result<rmd::mc_x_servo> make_servo(rmd::mc_x& p_mc_x, hal::rpm p_max_speed)
+result<mc_x_servo> make_servo(mc_x& p_mc_x, hal::rpm p_max_speed)
 {
-  return rmd::mc_x_servo(p_mc_x, p_max_speed);
+  return mc_x_servo(p_mc_x, p_max_speed);
 }
-result<rmd::mc_x_temperature> make_temperature_sensor(rmd::mc_x& p_mc_x)
+result<mc_x_temperature> make_temperature_sensor(mc_x& p_mc_x)
 {
-  return rmd::mc_x_temperature(p_mc_x);
+  return mc_x_temperature(p_mc_x);
 }
-}  // namespace hal
+}  // namespace hal::rmd

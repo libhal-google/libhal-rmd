@@ -21,6 +21,7 @@
 #include <libhal-util/map.hpp>
 #include <libhal-util/steady_clock.hpp>
 
+#include "common.hpp"
 #include "mc_x_constants.hpp"
 
 namespace hal::rmd {
@@ -47,14 +48,6 @@ struct response_waiter
   message_t m_original_message_number{ 0 };
   mc_x* m_this;
 };
-
-can::message_t message(can::id_t p_device_id,
-                       std::array<hal::byte, 8> p_payload)
-{
-  can::message_t message{ .id = p_device_id, .length = 8 };
-  message.payload = p_payload;
-  return message;
-}
 
 template<std::integral T>
 result<T> bounds_check(std::floating_point auto p_float)

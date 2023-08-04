@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libhal-rmd/mc_x.hpp>
+#include <libhal-rmd/drc.hpp>
 
 #include <libhal-mock/can.hpp>
 #include <libhal-mock/steady_clock.hpp>
@@ -21,12 +21,37 @@
 #include <boost/ut.hpp>
 
 namespace hal::rmd {
-void mc_x_test()
+namespace {
+struct drc_inert_can : public hal::can
+{
+private:
+  status driver_configure([[maybe_unused]] const settings& p_settings) override
+  {
+    return hal::success();
+  }
+
+  status driver_bus_on() override
+  {
+    return hal::success();
+  }
+
+  result<send_t> driver_send(
+    [[maybe_unused]] const message_t& p_message) override
+  {
+    return send_t{};
+  }
+
+  void driver_on_receive(
+    [[maybe_unused]] hal::callback<handler> p_handler) override
+  {
+  }
+};
+}  // namespace
+
+void drc_adaptors_test()
 {
   using namespace boost::ut;
   using namespace std::literals;
   using namespace hal::literals;
-
-  "create()"_test = []() {};
 };
 }  // namespace hal::rmd
