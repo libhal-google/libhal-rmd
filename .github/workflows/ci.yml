@@ -20,7 +20,7 @@ on:
   release:
     types:
       - published
-      - unpublished
+      - deleted
   push:
     branches:
       - main
