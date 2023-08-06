@@ -16,7 +16,7 @@
 
 #include <cstdint>
 
-#include <libhal-util/can.hpp>
+#include <libhal-canrouter/can_router.hpp>
 #include <libhal/can.hpp>
 #include <libhal/motor.hpp>
 #include <libhal/rotation_sensor.hpp>

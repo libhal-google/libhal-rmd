@@ -18,6 +18,7 @@ project(libhal-rmd VERSION 0.0.1 LANGUAGES CXX)
 
 find_package(libhal REQUIRED CONFIG)
 find_package(libhal-util REQUIRED CONFIG)
+find_package(libhal-canrouter REQUIRED CONFIG)
 
 add_library(libhal-rmd
   src/drc.cpp
@@ -31,6 +32,7 @@ target_compile_features(libhal-rmd PRIVATE cxx_std_20)
 target_link_libraries(libhal-rmd PRIVATE
   libhal::libhal
   libhal::util
+  libhal::canrouter
 )
 
 if(NOT BUILD_TESTING STREQUAL OFF)
