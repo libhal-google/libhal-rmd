@@ -25,7 +25,7 @@ required_conan_version = ">=1.50.0"
 
 class libhal_rmd_conan(ConanFile):
     name = "libhal-rmd"
-    version = "3.0.0"
+    version = "3.0.1"
     license = "Apache-2.0"
     url = "https://github.com/conan-io/conan-center-index"
     homepage = "https://libhal.github.io/libhal-rmd"
@@ -74,7 +74,8 @@ class libhal_rmd_conan(ConanFile):
 
     def requirements(self):
         self.requires("libhal/[^2.0.0]")
-        self.requires("libhal-util/[^2.0.0]")
+        self.requires("libhal-util/[^3.0.0]")
+        self.requires("libhal-canrouter/[^1.0.0]")
         self.test_requires("libhal-mock/[^2.0.0]")
         self.test_requires("boost-ext-ut/1.1.9")
 

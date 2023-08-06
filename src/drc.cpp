@@ -303,14 +303,14 @@ void drc::operator()(const can::message_t& p_message)
     case hal::value(read::multi_turns_angle): {
       auto& data = p_message.payload;
 
-      m_feedback.raw_multi_turn_angle = hal::bit::value(0U)
-                                          .insert<bit::byte_m<0>>(data[1])
-                                          .insert<bit::byte_m<1>>(data[2])
-                                          .insert<bit::byte_m<2>>(data[3])
-                                          .insert<bit::byte_m<3>>(data[4])
-                                          .insert<bit::byte_m<4>>(data[5])
-                                          .insert<bit::byte_m<5>>(data[6])
-                                          .insert<bit::byte_m<6>>(data[7])
+      m_feedback.raw_multi_turn_angle = hal::bit_value(0U)
+                                          .insert<byte_m<0>>(data[1])
+                                          .insert<byte_m<1>>(data[2])
+                                          .insert<byte_m<2>>(data[3])
+                                          .insert<byte_m<3>>(data[4])
+                                          .insert<byte_m<4>>(data[5])
+                                          .insert<byte_m<5>>(data[6])
+                                          .insert<byte_m<6>>(data[7])
                                           .to<std::int64_t>();
       break;
     }

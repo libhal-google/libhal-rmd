@@ -18,6 +18,7 @@
 
 #include <libhal-mock/can.hpp>
 #include <libhal-mock/steady_clock.hpp>
+#include <libhal-util/can.hpp>
 #include <libhal-util/enum.hpp>
 
 #include <boost/ut.hpp>
