@@ -23,6 +23,7 @@ class demos(ConanFile):
     default_options = {"platform": "unspecified"}
 
     def build_requirements(self):
+        self.tool_requires("cmake/3.27.1")
         self.tool_requires("libhal-cmake-util/1.0.0")
 
     def requirements(self):
