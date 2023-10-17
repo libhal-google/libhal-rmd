@@ -11,32 +11,38 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 cmake_minimum_required(VERSION 3.15)
 
-project(libhal-rmd VERSION 0.0.1 LANGUAGES CXX)
+project(libhal-rmd LANGUAGES CXX)
 
-find_package(libhal REQUIRED CONFIG)
-find_package(libhal-util REQUIRED CONFIG)
-find_package(libhal-canrouter REQUIRED CONFIG)
+libhal_test_and_make_library(
+  LIBRARY_NAME libhal-rmd
 
-add_library(libhal-rmd
+  SOURCES
   src/drc.cpp
   src/drc_adaptors.cpp
   src/mc_x.cpp
   src/mc_x_adaptors.cpp
-)
 
-target_include_directories(libhal-rmd PUBLIC include)
-target_compile_features(libhal-rmd PRIVATE cxx_std_20)
-target_link_libraries(libhal-rmd PRIVATE
+  TEST_SOURCES
+  tests/drc.test.cpp
+  tests/mc_x.test.cpp
+  tests/drc_motor.test.cpp
+  tests/main.test.cpp
+
+  PACKAGES
+  libhal
+  libhal-util
+  libhal-canrouter
+
+  LINK_LIBRARIES
   libhal::libhal
   libhal::util
   libhal::canrouter
+
+  TEST_PACKAGES
+  libhal-mock
+
+  TEST_LINK_LIBRARIES
+  libhal::mock
 )
-
-if(NOT BUILD_TESTING STREQUAL OFF)
-  add_subdirectory(tests)
-endif()
-
-install(TARGETS libhal-rmd)

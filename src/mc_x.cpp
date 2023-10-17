@@ -136,27 +136,27 @@ result<mc_x> mc_x::create(hal::can_router& p_router,
   return mc_x_driver;
 }
 
-mc_x::mc_x(mc_x&& p_other)
-  : m_feedback(std::move(p_other.m_feedback))
-  , m_clock(std::move(p_other.m_clock))
-  , m_router(std::move(p_other.m_router))
+mc_x::mc_x(mc_x&& p_other) noexcept
+  : m_feedback(p_other.m_feedback)
+  , m_clock(p_other.m_clock)
+  , m_router(p_other.m_router)
   , m_route_item(std::move(p_other.m_route_item))
-  , m_gear_ratio(std::move(p_other.m_gear_ratio))
-  , m_device_id(std::move(p_other.m_device_id))
-  , m_max_response_time(std::move(p_other.m_max_response_time))
+  , m_gear_ratio(p_other.m_gear_ratio)
+  , m_device_id(p_other.m_device_id)
+  , m_max_response_time(p_other.m_max_response_time)
 {
   m_route_item.get().handler = std::ref(*this);
 }
 
-mc_x& mc_x::operator=(mc_x&& p_other)
+mc_x& mc_x::operator=(mc_x&& p_other) noexcept
 {
-  m_feedback = std::move(p_other.m_feedback);
-  m_clock = std::move(p_other.m_clock);
-  m_router = std::move(p_other.m_router);
+  m_feedback = p_other.m_feedback;
+  m_clock = p_other.m_clock;
+  m_router = p_other.m_router;
   m_route_item = std::move(p_other.m_route_item);
-  m_gear_ratio = std::move(p_other.m_gear_ratio);
-  m_device_id = std::move(p_other.m_device_id);
-  m_max_response_time = std::move(p_other.m_max_response_time);
+  m_gear_ratio = p_other.m_gear_ratio;
+  m_device_id = p_other.m_device_id;
+  m_max_response_time = p_other.m_max_response_time;
 
   m_route_item.get().handler = std::ref(*this);
 
@@ -170,7 +170,7 @@ const mc_x::feedback_t& mc_x::feedback() const
 
 mc_x::mc_x(hal::can_router& p_router,
            hal::steady_clock& p_clock,
-           float p_gear_ratio,
+           float p_gear_ratio,  // NOLINT
            can::id_t p_device_id,
            hal::time_duration p_max_response_time)
   : m_feedback{}
@@ -215,7 +215,7 @@ status mc_x::velocity_control(rpm p_rpm)
   return response.wait();
 }
 
-status mc_x::position_control(degrees p_angle, rpm p_rpm)
+status mc_x::position_control(degrees p_angle, rpm p_rpm)  // NOLINT
 {
   response_waiter response(this);
 
@@ -306,7 +306,7 @@ void mc_x::operator()(const can::message_t& p_message)
       // data[3] = Brake release command
       m_feedback.raw_volts = static_cast<int16_t>((data[5] << 8) | data[4]);
       auto error_state = data[7] << 8 | data[6];
-      m_feedback.raw_error_state = error_state;
+      m_feedback.raw_error_state = static_cast<int16_t>(error_state);
       break;
     }
     case hal::value(read::multi_turns_angle): {

@@ -74,7 +74,7 @@ public:
     /// zero starting point (0.01°/LSB)
     std::int64_t raw_multi_turn_angle{ 0 };
     /// 16-bit value containing error flag information
-    std::int16_t raw_error_state{ 0 };
+    std::uint16_t raw_error_state{ 0 };
     /// Current flowing through the motor windings
     ///  (-2048 <-> 2048 ==> -33A <-> 33A)
     std::int16_t raw_current{ 0 };
@@ -123,8 +123,8 @@ public:
 
   mc_x(mc_x& p_other) = delete;
   mc_x& operator=(mc_x& p_other) = delete;
-  mc_x(mc_x&& p_other);
-  mc_x& operator=(mc_x&& p_other);
+  mc_x(mc_x&& p_other) noexcept;
+  mc_x& operator=(mc_x&& p_other) noexcept;
 
   /**
    * @brief Get feedback about the motor

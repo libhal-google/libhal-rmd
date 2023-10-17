@@ -24,11 +24,11 @@ class demos(ConanFile):
 
     def build_requirements(self):
         self.tool_requires("cmake/3.27.1")
-        self.tool_requires("libhal-cmake-util/1.0.0")
+        self.tool_requires("libhal-cmake-util/2.2.0")
 
     def requirements(self):
         if str(self.options.platform).startswith("lpc40"):
-            self.requires("libhal-lpc40/[^2.1.1]")
+            self.requires("libhal-lpc40/[^2.1.4]")
         self.requires("libhal-rmd/3.0.0")
 
     def layout(self):
