@@ -124,27 +124,27 @@ result<drc> drc::create(hal::can_router& p_router,
   return drc_driver;
 }
 
-drc::drc(drc&& p_other)
-  : m_feedback(std::move(p_other.m_feedback))
-  , m_clock(std::move(p_other.m_clock))
-  , m_router(std::move(p_other.m_router))
+drc::drc(drc&& p_other) noexcept
+  : m_feedback(p_other.m_feedback)
+  , m_clock(p_other.m_clock)
+  , m_router(p_other.m_router)
   , m_route_item(std::move(p_other.m_route_item))
-  , m_gear_ratio(std::move(p_other.m_gear_ratio))
-  , m_device_id(std::move(p_other.m_device_id))
-  , m_max_response_time(std::move(p_other.m_max_response_time))
+  , m_gear_ratio(p_other.m_gear_ratio)
+  , m_device_id(p_other.m_device_id)
+  , m_max_response_time(p_other.m_max_response_time)
 {
   m_route_item.get().handler = std::ref(*this);
 }
 
-drc& drc::operator=(drc&& p_other)
+drc& drc::operator=(drc&& p_other) noexcept
 {
-  m_feedback = std::move(p_other.m_feedback);
-  m_clock = std::move(p_other.m_clock);
-  m_router = std::move(p_other.m_router);
+  m_feedback = p_other.m_feedback;
+  m_clock = p_other.m_clock;
+  m_router = p_other.m_router;
   m_route_item = std::move(p_other.m_route_item);
-  m_gear_ratio = std::move(p_other.m_gear_ratio);
-  m_device_id = std::move(p_other.m_device_id);
-  m_max_response_time = std::move(p_other.m_max_response_time);
+  m_gear_ratio = p_other.m_gear_ratio;
+  m_device_id = p_other.m_device_id;
+  m_max_response_time = p_other.m_max_response_time;
 
   m_route_item.get().handler = std::ref(*this);
 
@@ -158,7 +158,7 @@ const drc::feedback_t& drc::feedback() const
 
 drc::drc(hal::can_router& p_router,
          hal::steady_clock& p_clock,
-         float p_gear_ratio,
+         float p_gear_ratio,  // NOLINT
          can::id_t p_device_id,
          hal::time_duration p_max_response_time)
   : m_feedback{}
@@ -206,7 +206,7 @@ status drc::velocity_control(rpm p_rpm)
   return response.wait();
 }
 
-status drc::position_control(degrees p_angle, rpm p_rpm)
+status drc::position_control(degrees p_angle, rpm p_rpm)  // NOLINT
 {
   static constexpr float deg_per_lsb = 0.01f;
   const auto angle = (p_angle * m_gear_ratio) / deg_per_lsb;

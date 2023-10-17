@@ -170,8 +170,8 @@ public:
 
   drc(drc& p_other) = delete;
   drc& operator=(drc& p_other) = delete;
-  drc(drc&& p_other);
-  drc& operator=(drc&& p_other);
+  drc(drc&& p_other) noexcept;
+  drc& operator=(drc&& p_other) noexcept;
 
   /**
    * @brief Request feedback from the motor

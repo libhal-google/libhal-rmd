@@ -21,14 +21,7 @@
 #include <libhal-lpc40/constants.hpp>
 #include <libhal-lpc40/uart.hpp>
 
-#include "hardware_map.hpp"
-
-hal::status initialize_processor()
-{
-  // Handled by picolibc's crt0.s startup code
-
-  return hal::success();
-}
+#include "../hardware_map.hpp"
 
 hal::result<hardware_map> initialize_platform()
 {

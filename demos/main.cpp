@@ -16,12 +16,6 @@
 
 int main()
 {
-  auto processor_status = initialize_processor();
-
-  if (!processor_status) {
-    hal::halt();
-  }
-
   auto platform_status = initialize_platform();
 
   if (!platform_status) {
@@ -41,7 +35,7 @@ int main()
 }
 
 namespace boost {
-void throw_exception([[maybe_unused]] std::exception const& e)
+void throw_exception(std::exception const&)
 {
   hal::halt();
 }
