@@ -17,6 +17,7 @@
 #include <cstdint>
 
 #include <libhal-canrouter/can_router.hpp>
+#include <libhal/angular_velocity_sensor.hpp>
 #include <libhal/can.hpp>
 #include <libhal/motor.hpp>
 #include <libhal/rotation_sensor.hpp>
@@ -336,13 +337,39 @@ private:
  *
  * @param p_drc - reference to a drc driver. This object's lifetime must
  * exceed the lifetime of the returned object.
- * @param p_max_speed - maximum speed of the motor when moving to an angle
- * @return result<drc_servo> - motor implementation based on the drc driver
+ * @param p_max_speed - maximum speed of the servo when moving to an angle
+ * @return result<drc_servo> - servo implementation based on the drc driver
  */
 result<drc_servo> make_servo(drc& p_drc, hal::rpm p_max_speed);
+
+/**
+ * @brief angular velocity sensor adaptor for DRC
+ *
+ */
+class drc_angular_velocity_sensor : public hal::angular_velocity_sensor
+{
+private:
+  drc_angular_velocity_sensor(drc& p_drc);
+  result<angular_velocity_sensor::read_t> driver_read() override;
+  friend result<drc_angular_velocity_sensor> make_angular_velocity_sensor(
+    drc& p_drc);
+  drc* m_drc = nullptr;
+};
+
+/**
+ * @brief Create a hal::angular_velocity_sensor driver using the drc driver
+ *
+ * @param p_drc - reference to a drc driver. This object's lifetime must exceed
+ * the lifetime of the returned object
+ * @return result<angular_velocity_sensor> - angular_velocity_sensor
+ * implementation based on the drc driver
+ */
+result<drc_angular_velocity_sensor> make_angular_velocity_sensor(drc& p_drc);
+
 }  // namespace hal::rmd
 
 namespace hal {
+using rmd::make_angular_velocity_sensor;
 using rmd::make_motor;
 using rmd::make_rotation_sensor;
 using rmd::make_servo;

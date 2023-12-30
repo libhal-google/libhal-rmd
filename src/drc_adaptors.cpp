@@ -94,4 +94,23 @@ result<int> make_servo(hal::rpm p_max_speed)
 {
   return static_cast<int>(5 * p_max_speed);
 }
+
+drc_angular_velocity_sensor::drc_angular_velocity_sensor(drc& p_drc)
+  : m_drc(&p_drc)
+{
+}
+
+result<angular_velocity_sensor::read_t>
+drc_angular_velocity_sensor::driver_read()
+{
+  HAL_CHECK(m_drc->feedback_request(drc::read::status_2));
+
+  return angular_velocity_sensor::read_t{ .angular_velocity =
+                                            m_drc->feedback().speed() };
+}
+
+result<drc_angular_velocity_sensor> make_angular_velocity_sensor(drc& p_drc)
+{
+  return drc_angular_velocity_sensor(p_drc);
+}
 }  // namespace hal::rmd
