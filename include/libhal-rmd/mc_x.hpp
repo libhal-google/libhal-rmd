@@ -18,6 +18,7 @@
 
 #include <libhal-canrouter/can_router.hpp>
 #include <libhal/can.hpp>
+#include <libhal/current_sensor.hpp>
 #include <libhal/motor.hpp>
 #include <libhal/rotation_sensor.hpp>
 #include <libhal/servo.hpp>
@@ -304,9 +305,34 @@ private:
  * the MC-X driver
  */
 result<mc_x_temperature> make_temperature_sensor(mc_x& p_mc_x);
+
+/**
+ * @brief current sensor adaptor for mc_x
+ *
+ */
+class mc_x_current_sensor : public hal::current_sensor
+{
+private:
+  mc_x_current_sensor(mc_x& p_mc_x);
+  result<mc_x_current_sensor::read_t> driver_read() override;
+  friend result<mc_x_current_sensor> make_current_sensor(mc_x& p_mc_x);
+  mc_x* m_mc_x = nullptr;
+};
+
+/**
+ * @brief Create a hal::current_sensor driver using the mc_x driver
+ *
+ * @param p_mc_x - reference to a mc_x driver. This object's lifetime must
+ * exceed the lifetime of the returned object
+ * @return result<mc_x_current_sensor> - current_sensor
+ * implementation based on the mc_x driver
+ */
+result<mc_x_current_sensor> make_current_sensor(mc_x& p_mc_x);
+
 }  // namespace hal::rmd
 
 namespace hal {
+using rmd::make_current_sensor;
 using rmd::make_motor;
 using rmd::make_rotation_sensor;
 using rmd::make_servo;

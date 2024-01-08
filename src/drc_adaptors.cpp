@@ -113,4 +113,5 @@ result<drc_angular_velocity_sensor> make_angular_velocity_sensor(drc& p_drc)
 {
   return drc_angular_velocity_sensor(p_drc);
 }
+
 }  // namespace hal::rmd

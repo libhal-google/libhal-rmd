@@ -71,6 +71,20 @@ result<hal::rotation_sensor::read_t> mc_x_rotation::driver_read()
   };
 }
 
+mc_x_current_sensor::mc_x_current_sensor(mc_x& p_mc_x)
+  : m_mc_x(&p_mc_x)
+{
+}
+
+result<mc_x_current_sensor::read_t> mc_x_current_sensor::driver_read()
+{
+  HAL_CHECK(m_mc_x->feedback_request(hal::rmd::mc_x::read::status_2));
+
+  return hal::current_sensor::read_t{
+    .current = m_mc_x->feedback().current(),
+  };
+}
+
 result<mc_x_motor> make_motor(mc_x& p_mc_x, hal::rpm p_max_speed)
 {
   return mc_x_motor(p_mc_x, p_max_speed);
@@ -87,4 +101,10 @@ result<mc_x_temperature> make_temperature_sensor(mc_x& p_mc_x)
 {
   return mc_x_temperature(p_mc_x);
 }
+
+result<mc_x_current_sensor> make_current_sensor(mc_x& p_mc_x)
+{
+  return mc_x_current_sensor(p_mc_x);
+}
+
 }  // namespace hal::rmd
